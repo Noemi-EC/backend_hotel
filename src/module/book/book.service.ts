@@ -1,6 +1,7 @@
+import { Book, BookDocument } from './schema/book.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Book, BookDocument } from './schema/book.schema';
+import { Book as BookState } from './book.class';
 import { CreateBookDto } from './dto/create-book.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BookedState } from './state/booked.state';
@@ -9,13 +10,13 @@ import { Customer, CustomerDocument } from '../customer/schema/customer.schema';
 
 @Injectable()
 export class BookService {
-  private book: Book;
+  private book: BookState;
 
   constructor(
     @InjectModel(Book.name) private bookModel: Model<BookDocument>,
     @InjectModel(Customer.name) private customerModel: Model<CustomerDocument>
   ) {
-    this.book = new Book(new BookedState());
+    this.book = new BookState(new BookedState());
   }
 
   // ---------------------------------------------------------------------- 
@@ -26,6 +27,8 @@ export class BookService {
     const customer = await this.customerModel.findOne({ userId }).exec();
     if (!customer) throw new NotFoundException('No existe ningún cliente asociado a este usuario');
 
+      const customerId = customer._id;
+      
     const book = new this.bookModel({
       ...createBookDto,
       customerId,

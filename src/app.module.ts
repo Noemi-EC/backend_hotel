@@ -30,7 +30,5 @@ import { CustomerModule } from './module/customer/customer.module';
     BookModule,
     CustomerModule,
   ],
-  controllers: [BookController],
-  providers: [BookService],
 })
 export class AppModule {}
