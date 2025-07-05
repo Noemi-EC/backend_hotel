@@ -8,7 +8,7 @@ export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
   // @UseGuards(JwtAuthGuard)
-  @Post()
+  @Post('/add')
   async create(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customerService.create(createCustomerDto);
   }

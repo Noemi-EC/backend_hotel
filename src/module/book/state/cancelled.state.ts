@@ -12,4 +12,9 @@ export class CancelledState implements BookStateInterface {
   pending(): string {
     return 'Reserva pendiente, no se puede cancelar';
   }
+
+  canTransitionTo(newState: string): boolean {
+    // No se puede pasar a ningún otro estado desde cancelado
+    return false;
+  }
 }

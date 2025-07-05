@@ -12,4 +12,8 @@ export class BookedState implements BookStateInterface {
   pending(): string {
     return 'Reserva pendiente';
   }
+
+  canTransitionTo(newState: string): boolean {
+    return newState === 'cancelled';
+  }
 }

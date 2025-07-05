@@ -15,13 +15,5 @@ export class CreateBookDto {
 
   @IsOptional()
   @IsNumber()
-  guests?: number;
-
-  @IsOptional()
-  @IsNumber()
-  totalPrice?: number;
-
-  @IsOptional()
-  @IsString()
-  notes?: string;
+  price?: number;
 }

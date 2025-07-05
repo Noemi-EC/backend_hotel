@@ -3,10 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './module/auth/auth.module';
 import { UserModule } from './module/user/user.module';
-import { BookController } from './module/book/book.controller';
-import { BookService } from './module/book/book.service';
 import { BookModule } from './module/book/book.module';
 import { CustomerModule } from './module/customer/customer.module';
+import { RoomModule } from './module/room/room.module';
 
 @Module({
   imports: [
@@ -29,6 +28,9 @@ import { CustomerModule } from './module/customer/customer.module';
     UserModule,
     BookModule,
     CustomerModule,
+    RoomModule,
   ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

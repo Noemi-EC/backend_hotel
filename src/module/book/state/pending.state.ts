@@ -1,6 +1,6 @@
 import { BookStateInterface } from './book-state.interface';
 
-export class CancelledState implements BookStateInterface {
+export class PendingState implements BookStateInterface {
   booked(): string {
     return 'Reserva cancelada, no se puede reservar de nuevo';
   }
@@ -11,5 +11,9 @@ export class CancelledState implements BookStateInterface {
 
   pending(): string {
     return 'Reserva pendiente, no se puede cancelar';
+  }
+
+  canTransitionTo(newState: string): boolean {
+    return newState === 'booked' || newState === 'cancelled';
   }
 }

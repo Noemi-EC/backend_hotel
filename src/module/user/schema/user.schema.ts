@@ -9,11 +9,10 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ default: 'ROOT' })
+  @Prop({ default: 'ADMIN' })
   role: string;
 }
 
-// ✅ Aquí ajustamos el tipo de _id
 export type UserDocument = User & Document & { _id: Types.ObjectId };
 
 export const UserSchema = SchemaFactory.createForClass(User);
