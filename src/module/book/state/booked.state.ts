@@ -1,16 +1,22 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { BookStateInterface } from './book-state.interface';
+import { BookContext } from '../book-context.class';
+import { CancelledState } from './cancelled.state';
+import { PendingState } from './pending.state';
 
 export class BookedState implements BookStateInterface {
-  booked(): string {
-    return 'Reserva confirmada';
+  booked(context: BookContext): string {
+    return 'Reserva ya confirmada';
   }
 
-  cancelled(): string {
+  cancelled(context: BookContext): string {
+    context.setState(new CancelledState());
     return 'Reserva cancelada';
   }
 
-  pending(): string {
-    return 'Reserva pendiente';
+  pending(context: BookContext): string {
+    context.setState(new PendingState());
+    return 'No se puede cambiar una reserva confirmada a pendiente';
   }
 
   canTransitionTo(newState: string): boolean {
