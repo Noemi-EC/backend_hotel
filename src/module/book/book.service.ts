@@ -1,3 +1,4 @@
+import { BookFactory } from '../../factory/book.factory';
 import { Book, BookDocument } from './schema/book.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -25,6 +26,12 @@ export class BookService {
     @InjectModel(Customer.name) private customerModel: Model<CustomerDocument>,
   ) {}
 
+  private stateMap: Record<string, new () => BookStateInterface> = {
+    booked: BookedState,
+    cancelled: CancelledState,
+    pending: PendingState,
+  };
+
   async create(
     createBookDto: CreateBookDto,
     userId: string,
@@ -43,21 +50,12 @@ export class BookService {
     const customerId = customer._id;
     const roomId = room._id;
 
-    const book = new this.bookModel({
-      ...createBookDto,
-      roomId: roomId,
-      customerId,
-      status: 'pending', // Estado inicial
-    });
+    const bookData = BookFactory.create(createBookDto, room._id, customer._id);
+    const book = new this.bookModel(bookData);
     return book.save();
   }
-
   // Mapa de estados
-  private stateMap: Record<string, new () => BookStateInterface> = {
-    booked: BookedState,
-    cancelled: CancelledState,
-    pending: PendingState,
-  };
+  
 
   async changeStatus(
     bookId: string,

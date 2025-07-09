@@ -1,3 +1,4 @@
+import { UserFactory } from '../../factory/user.factory';
 import { Injectable, ConflictException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -13,12 +14,8 @@ export class UserService {
     const existingUser = await this.userModel.findOne({ username: createUserDto.username }).exec();
     if (existingUser) throw new ConflictException('El usuario ya existe');
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    const createdUser = new this.userModel({
-      username: createUserDto.username,
-      password: hashedPassword,
-      role: 'ADMIN',
-    });
+    const userData = await UserFactory.create(createUserDto);
+const createdUser = new this.userModel(userData);
 
     return createdUser.save();
   }
