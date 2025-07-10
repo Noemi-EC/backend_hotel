@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 // import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
@@ -11,5 +11,10 @@ export class CustomerController {
   @Post('/add')
   async create(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customerService.create(createCustomerDto);
+  }
+
+  @Get('/all')
+  async findAll() {
+    return this.customerService.findAll();
   }
 }

@@ -4,8 +4,8 @@ export class CreateBookDto {
   @IsMongoId()
   roomId: string;
 
-  @IsMongoId()
-  customerId: string;
+  // @IsMongoId()
+  // customerId: string;
 
   @IsDateString()
   checkInDate: Date;

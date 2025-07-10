@@ -47,15 +47,14 @@ export class BookService {
     const room = await this.roomModel.findById(createBookDto.roomId).exec();
     if (!room) throw new NotFoundException('Habitación no encontrada');
 
-    const customerId = customer._id;
-    const roomId = room._id;
+    // const customerId = customer._id;
+    // const roomId = room._id;
 
     const bookData = BookFactory.create(createBookDto, room._id, customer._id);
     const book = new this.bookModel(bookData);
     return book.save();
   }
   // Mapa de estados
-  
 
   async changeStatus(
     bookId: string,
@@ -156,9 +155,9 @@ export class BookService {
       .exec();
   }
 
-  async findByCustomer(userId: string): Promise<BookDocument[]> {
+  async findAllByCustomer(userId: string): Promise<BookDocument[]> {
     const customer = await this.customerModel
-      .findOne({ userId: new Types.ObjectId(userId) })
+      .find({ userId: new Types.ObjectId(userId) })
       .exec();
     if (!customer) {
       throw new NotFoundException(
@@ -167,7 +166,7 @@ export class BookService {
     }
 
     return this.bookModel
-      .find({ customerId: customer._id })
+      .find({ customerId: new Types.ObjectId(customer[0]._id) })
       .populate('roomId')
       .exec();
   }

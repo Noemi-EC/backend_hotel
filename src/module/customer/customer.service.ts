@@ -31,4 +31,8 @@ export class CustomerService {
 
     return customer.save();
   }
+
+  async findAll(): Promise<CustomerDocument[]> {
+    return this.customerModel.find().populate('userId').exec();
+  }
 }

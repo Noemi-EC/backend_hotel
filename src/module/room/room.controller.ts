@@ -6,16 +6,17 @@ import { Roles } from '../auth/guard/roles.decorator';
 import { RolesGuard } from '../auth/guard/roles.guard';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 @Controller('room')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
-
+  
+  @Roles('ADMIN')
   @Post('/add')
   async create(@Body() createRoomDto: CreateRoomDto) {
     return this.roomService.create(createRoomDto);
   }
-
+  
+  @Roles('ADMIN', 'CUSTOMER')
   @Get('/all')
   async findAll() {
     return this.roomService.findAll();

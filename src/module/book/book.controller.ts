@@ -29,10 +29,17 @@ export class BookController {
     return this.bookService.changeStatus(id, userId, status);
   }
 
-  @Get('all')
+  @Get('admin/all')
   @Roles('ADMIN')
   async findAll(@Req() req) {
     const userId = req.user.userId;
     return this.bookService.findAll(userId);
+  }
+
+  @Get('customer/all')
+  @Roles('CUSTOMER')
+  async findAllByCustomer(@Req() req) {
+    const userId = req.user.userId;
+    return this.bookService.findAllByCustomer(userId);
   }
 }
