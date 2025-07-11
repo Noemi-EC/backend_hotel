@@ -51,7 +51,7 @@ export class BookService {
     const book = new this.bookModel(bookData);
     const savedBook = await book.save();
 
-    // ✅ Si la reserva se crea con estado "booked", marcar la habitación como "ocupada"
+    // Si la reserva se crea con estado "booked", marcar la habitación como "ocupada"
     if (book.status === 'booked') {
       await this.roomModel.findByIdAndUpdate(room._id, { status: 'ocupada' });
     }
@@ -119,12 +119,12 @@ export class BookService {
     book.status = newStatus;
     await book.save();
 
-    // ✅ Si el nuevo estado es "cancelled", liberar la habitación
+    // Si el nuevo estado es "cancelled", liberar la habitación
     if (newStatus === 'cancelled') {
       await this.roomModel.findByIdAndUpdate(book.roomId, { status: 'disponible' });
     }
 
-    // ✅ Si el nuevo estado es "booked", marcar la habitación como "ocupada"
+    // Si el nuevo estado es "booked", marcar la habitación como "ocupada"
     if (newStatus === 'booked') {
       await this.roomModel.findByIdAndUpdate(book.roomId, { status: 'ocupada' });
     }

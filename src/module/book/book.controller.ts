@@ -20,11 +20,7 @@ export class BookController {
 
   @Roles('CUSTOMER', 'ADMIN')
   @Patch(':id/status/:status')
-  async updateStatus(
-    @Param('id') id: string,
-    @Req() req,
-    @Param('status') status: 'pending' | 'booked' | 'cancelled'
-  ) {
+  async updateStatus(@Param('id') id: string, @Req() req, @Param('status') status: 'pending' | 'booked' | 'cancelled') {
     const userId = req.user.userId;
     return this.bookService.changeStatus(id, userId, status);
   }
