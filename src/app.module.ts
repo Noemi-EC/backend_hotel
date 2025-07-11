@@ -7,6 +7,7 @@ import { BookModule } from './module/book/book.module';
 import { CustomerModule } from './module/customer/customer.module';
 import { RoomModule } from './module/room/room.module';
 import { getMongooseInstance } from './mongoose-singleton.provider';
+import { PaymentModule } from './module/payment/payment.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { getMongooseInstance } from './mongoose-singleton.provider';
     BookModule,
     CustomerModule,
     RoomModule,
+    PaymentModule,
   ],
   controllers: [],
   providers: [],
