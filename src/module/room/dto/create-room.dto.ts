@@ -1,14 +1,14 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { RoomCategory } from '../schema/room.schema';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { RoomCategory, RoomStatus } from '../schema/room.schema';
 
 export class CreateRoomDto {
   @IsString()
   @IsNotEmpty()
   code: string;
 
-  @IsBoolean()
-  @IsOptional()
-  status?: boolean;
+  @IsString()
+  @IsNotEmpty()
+  status: RoomStatus;
 
   @IsNotEmpty()
   @IsNumber()

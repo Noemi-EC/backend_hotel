@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 export type RoomCategory = 'suite' | 'duplex' | 'standard' | 'deluxe';
+export type RoomStatus = 'disponible' | 'ocupada' | 'limpieza' | 'mantenimiento';
 
 @Schema({ timestamps: true })
 export class Room {
@@ -9,7 +10,7 @@ export class Room {
   code: string;
 
   @Prop({ required: true })
-  status: boolean;
+  status: RoomStatus;
 
   @Prop({ required: true })
   capacity: number;
