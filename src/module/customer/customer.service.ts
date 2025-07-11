@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { Customer, CustomerDocument } from './schema/customer.schema';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UserService } from '../user/user.service';
+import { UpdateCustomerDto } from './dto/update-customer.dto';
 
 @Injectable()
 export class CustomerService {
@@ -30,6 +31,14 @@ export class CustomerService {
     });
 
     return customer.save();
+  }
+
+  async update(id: string, updateData: UpdateCustomerDto): Promise<CustomerDocument | null> {
+    return this.customerModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
+  }
+
+  async delete(id: string): Promise<any> {
+    return this.customerModel.findByIdAndDelete(id).exec();
   }
 
   async findAll(): Promise<CustomerDocument[]> {
