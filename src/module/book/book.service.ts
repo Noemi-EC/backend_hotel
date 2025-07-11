@@ -4,11 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { BookContext } from './book-context.class';
 import { CreateBookDto } from './dto/create-book.dto';
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { BookedState } from './state/booked.state';
 import { CancelledState } from './state/cancelled.state';
 import { PendingState } from './state/pending.state';
@@ -49,13 +45,21 @@ export class BookService {
 
     // const customerId = customer._id;
     // const roomId = room._id;
-
+    
+    // Usamos BookFactory (patrón Factory) para crear el DTO de reserva
     const bookData = BookFactory.create(createBookDto, room._id, customer._id);
     const book = new this.bookModel(bookData);
-    return book.save();
-  }
-  // Mapa de estados
+    const savedBook = await book.save();
 
+    // ✅ Si la reserva se crea con estado "booked", marcar la habitación como "ocupada"
+    if (book.status === 'booked') {
+      await this.roomModel.findByIdAndUpdate(room._id, { status: 'ocupada' });
+    }
+
+    return savedBook;
+  }
+
+  // Mapa de estados
   async changeStatus(
     bookId: string,
     userId: string,
@@ -114,6 +118,16 @@ export class BookService {
     // Actualizar la base de datos
     book.status = newStatus;
     await book.save();
+
+    // ✅ Si el nuevo estado es "cancelled", liberar la habitación
+    if (newStatus === 'cancelled') {
+      await this.roomModel.findByIdAndUpdate(book.roomId, { status: 'disponible' });
+    }
+
+    // ✅ Si el nuevo estado es "booked", marcar la habitación como "ocupada"
+    if (newStatus === 'booked') {
+      await this.roomModel.findByIdAndUpdate(book.roomId, { status: 'ocupada' });
+    }
 
     return { book, message };
   }
