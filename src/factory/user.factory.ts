@@ -9,7 +9,7 @@ export class UserFactory {
     return {
       username: createUserDto.username,
       password: hashedPassword,
-      role: createUserDto.role || 'CUSTOMER', // usa CUSTOMER por defecto si no se especifica
+      role: createUserDto.role || 'CUSTOMER', 
     };
   }
 }
