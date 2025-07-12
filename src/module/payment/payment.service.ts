@@ -53,22 +53,26 @@ export class PaymentService {
         })
         .exec();
     }
-
-  async refund(id: string): Promise<PaymentDocument> {
-    const payment = await this.paymentModel.findById(id).populate('bookId');
-    if (!payment) throw new NotFoundException('Pago no encontrado');
-
-    // Cambiar estado del pago
-    payment.status = 'refunded';
-    await payment.save();
-
-    // Cambiar reserva a "disponible"
-    const book = await this.bookModel.findById(payment.bookId);
-    if (book) {
-      book.status = 'cancelled'; // O "pending", según tu lógica
-      await book.save();
-    }
-
-    return payment;
-  }
+    async findByCustomer(customerId: string): Promise<PaymentDocument[]> {
+      // 1. Buscar primero los bookings del usuario
+      const bookings = await this.bookModel.find({ customerId }).select('_id');
+      const bookIds = bookings.map(b => b._id);
+      // 2. Buscar pagos solo para esas reservas
+      return this.paymentModel
+        .find({ bookId: { $in: bookIds } })
+        .populate({
+          path: 'bookId',
+          populate: [
+            {
+              path: 'roomId',
+              select: 'code',
+           },
+           {
+              path: 'customerId',
+              select: 'name lastName',
+           }
+         ]
+       })
+       .exec();
+} 
 }

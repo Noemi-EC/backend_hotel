@@ -16,8 +16,4 @@ export class PaymentController {
     return this.paymentService.findAll();
   }
 
-  @Patch('refund/:id')
-  async refund(@Param('id') id: string) {
-    return this.paymentService.refund(id);
-  }
 }
