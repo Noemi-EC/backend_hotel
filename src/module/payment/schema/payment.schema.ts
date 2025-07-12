@@ -10,7 +10,7 @@ export class Payment {
   @Prop({ required: true })
   amount: number;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   cardLastDigits: string;
 
   @Prop({ required: true, enum: ['completed', 'refunded'], default: 'completed' })
