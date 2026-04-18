@@ -6,18 +6,20 @@ async function bootstrap() {
 
   // Configurar CORS ANTES del prefijo global
   app.enableCors({
-    origin: [
-      'http://192.168.18.11:3000',
-      'http://192.168.18.11:8080',
-      'http://192.168.1.44:8080',
-      //Colocar o añadir la IP de tu maquina 
-    ],
+    // origin: [
+    //   'http://192.168.18.11:3000',
+    //   'http://192.168.18.11:8080',
+    //   'http://192.168.1.44:8080',
+    //   //Colocar o añadir la IP de tu maquina
+    // ],
+    origin: process.env.CORS_ORIGIN?.split(',') || '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: 'Content-Type, Authorization',
     credentials: true,
   });
 
   app.setGlobalPrefix('api/v1');
+  app.enableCors();
   await app.listen(process.env.PORT ?? 3000);
 }
 
