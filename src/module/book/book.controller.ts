@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req, Param, Patch, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Param, Patch, Get, ParseIntPipe } from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
@@ -13,29 +13,32 @@ export class BookController {
   @Roles('CUSTOMER', 'ADMIN')
   @Post('/add')
   async create(@Body() createBookDto: CreateBookDto, @Req() req) {
-    // El userId viene del token JWT
-    const userId = req.user.userId;
+    const userId: number = req.user.userId;
     return this.bookService.create(createBookDto, userId);
   }
 
   @Roles('CUSTOMER', 'ADMIN')
   @Patch(':id/status/:status')
-  async updateStatus(@Param('id') id: string, @Req() req, @Param('status') status: 'pending' | 'booked' | 'cancelled') {
-    const userId = req.user.userId;
+  async updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req,
+    @Param('status') status: 'pending' | 'booked' | 'cancelled',
+  ) {
+    const userId: number = req.user.userId;
     return this.bookService.changeStatus(id, userId, status);
   }
 
   @Get('admin/all')
   @Roles('ADMIN')
   async findAll(@Req() req) {
-    const userId = req.user.userId;
+    const userId: number = req.user.userId;
     return this.bookService.findAll(userId);
   }
 
   @Get('customer/all')
   @Roles('CUSTOMER')
   async findAllByCustomer(@Req() req) {
-    const userId = req.user.userId;
+    const userId: number = req.user.userId;
     return this.bookService.findAllByCustomer(userId);
   }
 }

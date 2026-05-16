@@ -1,47 +1,47 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Customer, CustomerDocument } from './schema/customer.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Customer } from './entity/customer.entity';
 import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UserService } from '../user/user.service';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class CustomerService {
   constructor(
-    @InjectModel(Customer.name) private customerModel: Model<CustomerDocument>,
+    @InjectRepository(Customer)
+    private customerRepository: Repository<Customer>,
     private readonly userService: UserService,
   ) {}
 
-  async create(createCustomerDto: CreateCustomerDto): Promise<CustomerDocument> {
-    // Crea el usuario
+  async create(createCustomerDto: CreateCustomerDto): Promise<Customer> {
     const user = await this.userService.create({
       username: createCustomerDto.username,
       password: createCustomerDto.password,
       role: 'CUSTOMER',
     });
 
-    // Crea el cliente asociado al usuario
-    const customer = new this.customerModel({
+    const customer = this.customerRepository.create({
       name: createCustomerDto.name,
       lastName: createCustomerDto.lastName,
       dni: createCustomerDto.dni,
       email: createCustomerDto.email,
-      userId: user._id,
+      userId: user.id,
     });
 
-    return customer.save();
+    return this.customerRepository.save(customer);
   }
 
-  async update(id: string, updateData: UpdateCustomerDto): Promise<CustomerDocument | null> {
-    return this.customerModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
+  async update(id: number, updateData: UpdateCustomerDto): Promise<Customer | null> {
+    await this.customerRepository.update(id, updateData);
+    return this.customerRepository.findOne({ where: { id } });
   }
 
-  async delete(id: string): Promise<any> {
-    return this.customerModel.findByIdAndDelete(id).exec();
+  async delete(id: number): Promise<void> {
+    await this.customerRepository.delete(id);
   }
 
-  async findAll(): Promise<CustomerDocument[]> {
-    return this.customerModel.find().populate('userId').exec();
+  async findAll(): Promise<Customer[]> {
+    return this.customerRepository.find({ relations: ['user'] });
   }
 }

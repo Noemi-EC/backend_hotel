@@ -1,78 +1,59 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { Payment, PaymentDocument } from './schema/payment.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Payment } from './entity/payment.entity';
+import { Book } from '../book/entity/book.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { Book, BookDocument } from '../book/schema/book.schema';
 
 @Injectable()
 export class PaymentService {
   constructor(
-    @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
-    @InjectModel(Book.name) private bookModel: Model<BookDocument>,
+    @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
+    @InjectRepository(Book) private bookRepository: Repository<Book>,
   ) {}
 
-  async createPayment(dto: CreatePaymentDto): Promise<PaymentDocument> {
-    const book = await this.bookModel.findById(dto.bookId);
+  async createPayment(dto: CreatePaymentDto): Promise<Payment> {
+    const book = await this.bookRepository.findOne({ where: { id: dto.bookId } });
     if (!book) throw new NotFoundException('Reserva no encontrada');
 
     if (book.status !== 'pending') {
       throw new BadRequestException('Esta reserva ya ha sido pagada o procesada');
     }
 
-    // Simular obtener últimos 4 dígitos
     const cardLastDigits = dto.cardNumber.slice(-4);
 
-    // Crear el pago
-    const payment = new this.paymentModel({
-      bookId: book._id,
+    const payment = this.paymentRepository.create({
+      bookId: book.id,
       amount: book.price,
       status: 'completed',
       cardLastDigits,
     });
 
-    // Guardar el pago
-    await payment.save();
+    await this.paymentRepository.save(payment);
 
-    // Actualizar la reserva a "booked"
-    book.status = 'booked';
-    await book.save();
+    await this.bookRepository.update(book.id, { status: 'booked' });
 
     return payment;
   }
 
-  async findAll(): Promise<PaymentDocument[]> {
-    return this.paymentModel
-      .find()
-      .populate({
-        path: 'bookId',
-        populate: {
-           path: 'customerId',
-           select: 'name lastName'
-          }
-        })
-        .exec();
-    }
-    async findByCustomer(customerId: string): Promise<PaymentDocument[]> {
-      // 1. Buscar primero los bookings del usuario
-      const bookings = await this.bookModel.find({ customerId }).select('_id');
-      const bookIds = bookings.map(b => b._id);
-      // 2. Buscar pagos solo para esas reservas
-      return this.paymentModel
-        .find({ bookId: { $in: bookIds } })
-        .populate({
-          path: 'bookId',
-          populate: [
-            {
-              path: 'roomId',
-              select: 'code',
-           },
-           {
-              path: 'customerId',
-              select: 'name lastName',
-           }
-         ]
-       })
-       .exec();
-} 
+  async findAll(): Promise<Payment[]> {
+    return this.paymentRepository.find({
+      relations: ['book', 'book.customer'],
+    });
+  }
+
+  async findByCustomer(customerId: number): Promise<Payment[]> {
+    const books = await this.bookRepository.find({ where: { customerId } });
+    const bookIds = books.map((b) => b.id);
+
+    if (bookIds.length === 0) return [];
+
+    return this.paymentRepository
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.book', 'book')
+      .leftJoinAndSelect('book.room', 'room')
+      .leftJoinAndSelect('book.customer', 'customer')
+      .where('payment.book_id IN (:...bookIds)', { bookIds })
+      .getMany();
+  }
 }

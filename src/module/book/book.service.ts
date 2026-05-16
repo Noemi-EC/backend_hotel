@@ -1,25 +1,25 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Book } from './entity/book.entity';
+import { Customer } from '../customer/entity/customer.entity';
+import { User } from '../user/entity/user.entity';
+import { Room } from '../room/entity/room.entity';
 import { BookFactory } from '../../factory/book.factory';
-import { Book, BookDocument } from './schema/book.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
 import { BookContext } from './book-context.class';
 import { CreateBookDto } from './dto/create-book.dto';
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { BookedState } from './state/booked.state';
 import { CancelledState } from './state/cancelled.state';
 import { PendingState } from './state/pending.state';
-import { Customer, CustomerDocument } from '../customer/schema/customer.schema';
-import { User, UserDocument } from '../user/schema/user.schema';
-import { Room, RoomDocument } from '../room/schema/room.schema';
 import { BookStateInterface } from './state/book-state.interface';
 
 @Injectable()
 export class BookService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Book.name) private bookModel: Model<BookDocument>,
-    @InjectModel(Room.name) private roomModel: Model<RoomDocument>,
-    @InjectModel(Customer.name) private customerModel: Model<CustomerDocument>,
+    @InjectRepository(Book) private bookRepository: Repository<Book>,
+    @InjectRepository(Customer) private customerRepository: Repository<Customer>,
+    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Room) private roomRepository: Repository<Room>,
   ) {}
 
   private stateMap: Record<string, new () => BookStateInterface> = {
@@ -28,78 +28,51 @@ export class BookService {
     pending: PendingState,
   };
 
-  async create(
-    createBookDto: CreateBookDto,
-    userId: string,
-  ): Promise<BookDocument> {
-    const customer = await this.customerModel
-      .findOne({ userId: new Types.ObjectId(userId) })
-      .exec();
-    if (!customer)
-      throw new NotFoundException(
-        'No existe ningún cliente asociado a este usuario',
-      );
+  async create(createBookDto: CreateBookDto, userId: number): Promise<Book> {
+    const customer = await this.customerRepository.findOne({ where: { userId } });
+    if (!customer) throw new NotFoundException('No existe ningún cliente asociado a este usuario');
 
-    const room = await this.roomModel.findById(createBookDto.roomId).exec();
+    const room = await this.roomRepository.findOne({ where: { id: createBookDto.roomId } });
     if (!room) throw new NotFoundException('Habitación no encontrada');
 
-    // const customerId = customer._id;
-    // const roomId = room._id;
-    
-    // Usamos BookFactory (patrón Factory) para crear el DTO de reserva
-    const bookData = BookFactory.create(createBookDto, room._id, customer._id);
-    const book = new this.bookModel(bookData);
-    const savedBook = await book.save();
+    const bookData = BookFactory.create(createBookDto, room.id, customer.id);
+    const book = this.bookRepository.create(bookData);
+    const savedBook = await this.bookRepository.save(book);
 
-    // Si la reserva se crea con estado "booked", marcar la habitación como "ocupada"
-    if (book.status === 'booked') {
-      await this.roomModel.findByIdAndUpdate(room._id, { status: 'ocupada' });
+    if (savedBook.status === 'booked') {
+      await this.roomRepository.update(room.id, { status: 'ocupada' });
     }
 
     return savedBook;
   }
 
-  // Mapa de estados
   async changeStatus(
-    bookId: string,
-    userId: string,
+    bookId: number,
+    userId: number,
     newStatus: 'pending' | 'booked' | 'cancelled',
-  ): Promise<{ book: BookDocument; message: string }> {
-    const book = await this.bookModel.findById(bookId);
+  ): Promise<{ book: Book; message: string }> {
+    const book = await this.bookRepository.findOne({ where: { id: bookId } });
     if (!book) throw new NotFoundException('Reserva no encontrada');
 
-    const customer = await this.customerModel
-      .findOne({ userId: new Types.ObjectId(userId) })
-      .exec();
-    const admin = await this.userModel
-      .findOne({ _id: new Types.ObjectId(userId), role: 'ADMIN' })
-      .exec();
+    const customer = await this.customerRepository.findOne({ where: { userId } });
+    const admin = await this.userRepository.findOne({ where: { id: userId, role: 'ADMIN' } });
 
     if (!customer && !admin) {
-      throw new NotFoundException(
-        'No autorizado para cambiar el estado de la reserva',
-      );
+      throw new NotFoundException('No autorizado para cambiar el estado de la reserva');
     }
 
-    if (customer && book.customerId.toString() !== customer._id.toString()) {
-      throw new NotFoundException(
-        'No puedes cambiar el estado de reservas que no te pertenecen',
-      );
+    if (customer && book.customerId !== customer.id) {
+      throw new NotFoundException('No puedes cambiar el estado de reservas que no te pertenecen');
     }
 
-    // Crear contexto con el estado actual
     const StateClass = this.stateMap[book.status] || PendingState;
     const currentState = new StateClass();
     const bookContext = new BookContext(currentState);
 
-    // Verificar si la transición es válida
     if (!bookContext.canTransitionTo(newStatus)) {
-      throw new BadRequestException(
-        `No se puede cambiar de ${book.status} a ${newStatus}`,
-      );
+      throw new BadRequestException(`No se puede cambiar de ${book.status} a ${newStatus}`);
     }
 
-    // Ejecutar la transición usando el patrón State
     let message: string;
     switch (newStatus) {
       case 'booked':
@@ -115,28 +88,21 @@ export class BookService {
         throw new BadRequestException('Estado no válido');
     }
 
-    // Actualizar la base de datos
+    await this.bookRepository.update(bookId, { status: newStatus });
     book.status = newStatus;
-    await book.save();
 
-    // Si el nuevo estado es "cancelled", liberar la habitación
     if (newStatus === 'cancelled') {
-      await this.roomModel.findByIdAndUpdate(book.roomId, { status: 'disponible' });
+      await this.roomRepository.update(book.roomId, { status: 'disponible' });
     }
-
-    // Si el nuevo estado es "booked", marcar la habitación como "ocupada"
     if (newStatus === 'booked') {
-      await this.roomModel.findByIdAndUpdate(book.roomId, { status: 'ocupada' });
+      await this.roomRepository.update(book.roomId, { status: 'ocupada' });
     }
 
     return { book, message };
   }
 
-  // Métodos de utilidad para obtener información de estado
-  async getBookingStatus(
-    bookId: string,
-  ): Promise<{ status: string; availableTransitions: string[] }> {
-    const book = await this.bookModel.findById(bookId);
+  async getBookingStatus(bookId: number): Promise<{ status: string; availableTransitions: string[] }> {
+    const book = await this.bookRepository.findOne({ where: { id: bookId } });
     if (!book) throw new NotFoundException('Reserva no encontrada');
 
     const StateClass = this.stateMap[book.status] || PendingState;
@@ -148,40 +114,23 @@ export class BookService {
       (state) => state !== book.status && bookContext.canTransitionTo(state),
     );
 
-    return {
-      status: book.status,
-      availableTransitions,
-    };
+    return { status: book.status, availableTransitions };
   }
 
-  async findAll(userId: string): Promise<BookDocument[]> {
-    const admin = await this.userModel
-      .findOne({ _id: new Types.ObjectId(userId), role: 'ADMIN' })
-      .exec();
-    if (!admin) {
-      throw new NotFoundException('No autorizado para ver todas las reservas');
-    }
+  async findAll(userId: number): Promise<Book[]> {
+    const admin = await this.userRepository.findOne({ where: { id: userId, role: 'ADMIN' } });
+    if (!admin) throw new NotFoundException('No autorizado para ver todas las reservas');
 
-    return this.bookModel
-      .find()
-      .populate('roomId')
-      .populate('customerId')
-      .exec();
+    return this.bookRepository.find({ relations: ['room', 'customer'] });
   }
 
-  async findAllByCustomer(userId: string): Promise<BookDocument[]> {
-    const customer = await this.customerModel
-      .find({ userId: new Types.ObjectId(userId) })
-      .exec();
-    if (!customer) {
-      throw new NotFoundException(
-        'No existe ningún cliente asociado a este usuario',
-      );
-    }
+  async findAllByCustomer(userId: number): Promise<Book[]> {
+    const customer = await this.customerRepository.findOne({ where: { userId } });
+    if (!customer) throw new NotFoundException('No existe ningún cliente asociado a este usuario');
 
-    return this.bookModel
-      .find({ customerId: new Types.ObjectId(customer[0]._id) })
-      .populate('roomId')
-      .exec();
+    return this.bookRepository.find({
+      where: { customerId: customer.id },
+      relations: ['room'],
+    });
   }
 }

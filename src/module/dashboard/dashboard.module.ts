@@ -1,21 +1,14 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Customer, CustomerSchema } from '../customer/schema/customer.schema';
-import { Room, RoomSchema } from '../room/schema/room.schema';
-import { Book, BookSchema } from '../book/schema/book.schema';
-import { Payment, PaymentSchema } from '../payment/schema/payment.schema';
+import { Customer } from '../customer/entity/customer.entity';
+import { Room } from '../room/entity/room.entity';
+import { Book } from '../book/entity/book.entity';
+import { Payment } from '../payment/entity/payment.entity';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: Customer.name, schema: CustomerSchema },
-      { name: Room.name, schema: RoomSchema },
-      { name: Book.name, schema: BookSchema },
-      { name: Payment.name, schema: PaymentSchema },
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature([Customer, Room, Book, Payment])],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

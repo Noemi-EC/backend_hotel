@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Param, Put, Delete, ParseIntPipe } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
@@ -10,26 +10,28 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 @Controller('room')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
-  
+
   @Roles('ADMIN')
   @Post('/add')
   async create(@Body() createRoomDto: CreateRoomDto) {
     return this.roomService.create(createRoomDto);
   }
-  
+
   @Roles('ADMIN', 'CUSTOMER')
   @Get('/all')
   async findAll() {
     return this.roomService.findAll();
   }
+
   @Roles('ADMIN')
   @Put('/update/:id')
-  async update(@Param('id') id: string, @Body() updateRoomDto: UpdateRoomDto) {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() updateRoomDto: UpdateRoomDto) {
     return this.roomService.update(id, updateRoomDto);
   }
+
   @Roles('ADMIN')
   @Delete('/delete/:id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return this.roomService.remove(id);
   }
 }

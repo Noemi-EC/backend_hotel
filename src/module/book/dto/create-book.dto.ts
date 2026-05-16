@@ -1,11 +1,8 @@
-import { IsDateString, IsOptional, IsMongoId, IsNumber, IsString } from 'class-validator';
+import { IsDateString, IsOptional, IsNumber, IsInt } from 'class-validator';
 
 export class CreateBookDto {
-  @IsMongoId()
-  roomId: string;
-
-  // @IsMongoId()
-  // customerId: string;
+  @IsInt()
+  roomId: number;
 
   @IsDateString()
   checkInDate: Date;

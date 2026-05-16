@@ -1,25 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Customer, CustomerDocument } from '../customer/schema/customer.schema';
-import { Room, RoomDocument } from '../room/schema/room.schema';
-import { Book, BookDocument } from '../book/schema/book.schema';
-import { Payment, PaymentDocument } from '../payment/schema/payment.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Customer } from '../customer/entity/customer.entity';
+import { Room } from '../room/entity/room.entity';
+import { Book } from '../book/entity/book.entity';
+import { Payment } from '../payment/entity/payment.entity';
 
 @Injectable()
 export class DashboardService {
   constructor(
-    @InjectModel(Customer.name) private customerModel: Model<CustomerDocument>,
-    @InjectModel(Room.name) private roomModel: Model<RoomDocument>,
-    @InjectModel(Book.name) private bookModel: Model<BookDocument>,
-    @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
+    @InjectRepository(Customer) private customerRepository: Repository<Customer>,
+    @InjectRepository(Room) private roomRepository: Repository<Room>,
+    @InjectRepository(Book) private bookRepository: Repository<Book>,
+    @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
   ) {}
 
   async getSummary() {
-    const totalCustomers = await this.customerModel.countDocuments();
-    const totalRooms = await this.roomModel.countDocuments();
-    const totalBookings = await this.bookModel.countDocuments();
-    const totalPayments = await this.paymentModel.countDocuments({ status: 'completed' });
+    const totalCustomers = await this.customerRepository.count();
+    const totalRooms = await this.roomRepository.count();
+    const totalBookings = await this.bookRepository.count();
+    const totalPayments = await this.paymentRepository.count({ where: { status: 'completed' } });
 
     return {
       customers: totalCustomers,
@@ -30,36 +30,23 @@ export class DashboardService {
   }
 
   async getMonthlyEarnings() {
-  const raw = await this.paymentModel.aggregate([
-    {
-      $match: {
-        status: 'completed'
-      }
-    },
-    {
-      $group: {
-        _id: { $month: '$createdAt' },
-        total: { $sum: '$amount' }
-      }
-    },
-    {
-      $sort: { '_id': 1 }
-    }
-  ]);
+    const raw = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .select('EXTRACT(MONTH FROM payment.created_at)', 'month')
+      .addSelect('SUM(payment.amount)', 'total')
+      .where('payment.status = :status', { status: 'completed' })
+      .groupBy('EXTRACT(MONTH FROM payment.created_at)')
+      .orderBy('month', 'ASC')
+      .getRawMany();
 
-  const months = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
+    const months = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+    ];
 
-  const earnings = months.map((name, index) => {
-    const found = raw.find(r => r._id === index + 1);
-    return {
-      month: name,
-      total: found?.total || 0
-    };
-  });
-
-  return earnings;
-}
+    return months.map((name, index) => {
+      const found = raw.find((r) => Number(r.month) === index + 1);
+      return { month: name, total: found ? Number(found.total) : 0 };
+    });
+  }
 }

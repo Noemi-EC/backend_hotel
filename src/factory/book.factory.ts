@@ -1,12 +1,11 @@
-import { Book } from '../module/book/schema/book.schema';
+import { Book } from '../module/book/entity/book.entity';
 import { CreateBookDto } from '../module/book/dto/create-book.dto';
-import { Types } from 'mongoose';
 
 export class BookFactory {
   static create(
     createBookDto: CreateBookDto,
-    roomId: Types.ObjectId,
-    customerId: Types.ObjectId,
+    roomId: number,
+    customerId: number,
   ): Partial<Book> {
     return {
       ...createBookDto,

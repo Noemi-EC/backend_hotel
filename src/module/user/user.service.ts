@@ -1,33 +1,37 @@
-import { UserFactory } from '../../factory/user.factory';
 import { Injectable, ConflictException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './entity/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './schema/user.schema';
-import { Model } from 'mongoose';
+import { UserFactory } from '../../factory/user.factory';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    const existingUser = await this.userModel.findOne({ username: createUserDto.username }).exec();
-    if (existingUser) throw new ConflictException('El usuario ya existe');
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const existing = await this.userRepository.findOne({
+      where: { username: createUserDto.username },
+    });
+    if (existing) throw new ConflictException('El usuario ya existe');
 
     const userData = await UserFactory.create(createUserDto);
-const createdUser = new this.userModel(userData);
-
-    return createdUser.save();
+    const user = this.userRepository.create(userData);
+    return this.userRepository.save(user);
   }
 
-  async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find().exec();
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find();
   }
 
-  async findOne(username: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ username }).exec();
+  async findOne(username: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { username } });
   }
 
-  async remove(id: string): Promise<any> {
-    return this.userModel.findByIdAndDelete(id).exec();
+  async remove(id: number): Promise<void> {
+    await this.userRepository.delete(id);
   }
 }

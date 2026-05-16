@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsString, IsMongoId, Length } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, Length } from 'class-validator';
 
 export class CreatePaymentDto {
-  @IsMongoId()
+  @IsInt()
   @IsNotEmpty()
-  bookId: string;
+  bookId: number;
 
   @IsString()
   @Length(16, 16, { message: 'El número de tarjeta debe tener 16 dígitos' })

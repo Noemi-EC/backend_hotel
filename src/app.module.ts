@@ -1,14 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './module/auth/auth.module';
 import { UserModule } from './module/user/user.module';
 import { BookModule } from './module/book/book.module';
 import { CustomerModule } from './module/customer/customer.module';
 import { RoomModule } from './module/room/room.module';
-import { getMongooseInstance } from './mongoose-singleton.provider';
 import { PaymentModule } from './module/payment/payment.module';
 import { DashboardModule } from './module/dashboard/dashboard.module';
+import { CompanyModule } from './module/company/company.module';
+import { HotelModule } from './module/hotel/hotel.module';
 
 @Module({
   imports: [
@@ -16,18 +17,19 @@ import { DashboardModule } from './module/dashboard/dashboard.module';
       isGlobal: true,
       envFilePath: '.prod.env',
     }),
-    MongooseModule.forRootAsync({
+    TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        const uri: string = configService.get('MONGODB_URI') as string;
-        const options = { dbName: 'hotel' };
-        await getMongooseInstance(uri, options);
-        return {
-          uri,
-          ...options,
-        };
-      },
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USER'),
+        password: configService.get<string>('DB_PASS'),
+        database: configService.get<string>('DB_NAME'),
+        autoLoadEntities: true,
+        synchronize: true,
+      }),
     }),
     AuthModule,
     UserModule,
@@ -36,6 +38,8 @@ import { DashboardModule } from './module/dashboard/dashboard.module';
     RoomModule,
     PaymentModule,
     DashboardModule,
+    CompanyModule,
+    HotelModule,
   ],
   controllers: [],
   providers: [],

@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../module/user/dto/create-user.dto';
-import { User } from '../module/user/schema/user.schema';
+import { User } from '../module/user/entity/user.entity';
 
 export class UserFactory {
   static async create(createUserDto: CreateUserDto): Promise<Partial<User>> {
@@ -9,7 +9,7 @@ export class UserFactory {
     return {
       username: createUserDto.username,
       password: hashedPassword,
-      role: createUserDto.role || 'CUSTOMER', 
+      role: createUserDto.role || 'CUSTOMER',
     };
   }
 }

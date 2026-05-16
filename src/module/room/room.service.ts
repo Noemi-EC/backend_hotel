@@ -1,58 +1,46 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Room, RoomDocument } from './schema/room.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Room } from './entity/room.entity';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 
 @Injectable()
 export class RoomService {
   constructor(
-    @InjectModel(Room.name) private roomModel: Model<RoomDocument>,
+    @InjectRepository(Room)
+    private roomRepository: Repository<Room>,
   ) {}
 
   async create(createRoomDto: CreateRoomDto): Promise<Room> {
-    const existingRoom = await this.roomModel.findOne({
-      code: createRoomDto.code,
-      category: createRoomDto.category,
+    const existing = await this.roomRepository.findOne({
+      where: { code: createRoomDto.code, hotelId: createRoomDto.hotelId },
     });
-
-    if (existingRoom) {
-      throw new ConflictException(
-        'La habitación ya existe con el mismo código y categoría',
-      );
+    if (existing) {
+      throw new ConflictException('La habitación ya existe con el mismo código en este hotel');
     }
 
-    const newRoom = new this.roomModel({
-      ...createRoomDto,
-      status: createRoomDto.status ?? true,
-    });
-
-    return newRoom.save();
+    const room = this.roomRepository.create(createRoomDto);
+    return this.roomRepository.save(room);
   }
 
   async findAll(): Promise<Room[]> {
-    return this.roomModel.find().exec();
+    return this.roomRepository.find({ relations: ['hotel'] });
   }
 
-  async update(id: string, updateRoomDto: UpdateRoomDto): Promise<Room> {
-    const updatedRoom = await this.roomModel.findByIdAndUpdate(
-      id,
-      updateRoomDto,
-      { new: true, runValidators: true },
-    );
+  async update(id: number, updateRoomDto: UpdateRoomDto): Promise<Room> {
+    const room = await this.roomRepository.findOne({ where: { id } });
+    if (!room) throw new NotFoundException('Habitación no encontrada');
 
-    if (!updatedRoom) {
-      throw new NotFoundException('Habitación no encontrada');
-    }
-
-    return updatedRoom;
+    await this.roomRepository.update(id, updateRoomDto);
+    return this.roomRepository.findOne({ where: { id } }) as Promise<Room>;
   }
-  async remove(id: string): Promise<{ message: string }> {
-    const deleted = await this.roomModel.findByIdAndDelete(id);
-    if (!deleted) {
-    throw new NotFoundException('Habitación no encontrada');
-    }
+
+  async remove(id: number): Promise<{ message: string }> {
+    const room = await this.roomRepository.findOne({ where: { id } });
+    if (!room) throw new NotFoundException('Habitación no encontrada');
+
+    await this.roomRepository.delete(id);
     return { message: 'Habitación eliminada correctamente' };
   }
 }
