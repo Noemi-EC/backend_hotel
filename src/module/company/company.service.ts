@@ -1,17 +1,64 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { Company } from './entity/company.entity';
+import { Hotel } from '../hotel/entity/hotel.entity';
+import { User } from '../user/entity/user.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
+import { RegisterCompanyDto } from './dto/register-company.dto';
 
 @Injectable()
 export class CompanyService {
   constructor(
-    @InjectRepository(Company)
-    private companyRepository: Repository<Company>,
+    @InjectRepository(Company) private companyRepository: Repository<Company>,
+    private dataSource: DataSource,
   ) {}
 
+  async register(dto: RegisterCompanyDto) {
+    const existing = await this.companyRepository.findOne({ where: { ruc: dto.ruc } });
+    if (existing) throw new ConflictException('El RUC ya está registrado');
+
+    return this.dataSource.transaction(async (manager) => {
+      const company = await manager.save(Company, {
+        name: dto.companyName,
+        ruc: dto.ruc,
+        address: dto.companyAddress,
+        phone: dto.companyPhone,
+        email: dto.companyEmail,
+      });
+
+      const hotel = await manager.save(Hotel, {
+        companyId: company.id,
+        name: dto.hotelName,
+        address: dto.hotelAddress,
+        phone: dto.hotelPhone,
+        email: dto.hotelEmail,
+      });
+
+      const hashedPassword = await bcrypt.hash(dto.adminPassword, 10);
+      const admin = await manager.save(User, {
+        username: dto.adminUsername,
+        password: hashedPassword,
+        role: 'ADMIN',
+        companyId: company.id,
+        hotelId: hotel.id,
+      });
+
+      return {
+        message: 'Empresa y hotel registrados exitosamente',
+        company,
+        hotel,
+        admin: { id: admin.id, username: admin.username, role: admin.role },
+      };
+    });
+  }
+
   async create(dto: CreateCompanyDto): Promise<Company> {
+    if (dto.ruc) {
+      const existing = await this.companyRepository.findOne({ where: { ruc: dto.ruc } });
+      if (existing) throw new ConflictException('El RUC ya está registrado');
+    }
     const company = this.companyRepository.create(dto);
     return this.companyRepository.save(company);
   }

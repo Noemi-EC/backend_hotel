@@ -14,7 +14,7 @@ export class User {
   password: string;
 
   @Column({ length: 20, default: 'CUSTOMER' })
-  role: string;
+  role: string; // 'SUPERUSER' | 'ADMIN' | 'CUSTOMER'
 
   @Column({ name: 'company_id', nullable: true })
   companyId: number;
@@ -29,6 +29,12 @@ export class User {
   @ManyToOne(() => Hotel, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'hotel_id' })
   hotel: Hotel;
+
+  @Column({ name: 'login_attempts', default: 0 })
+  loginAttempts: number;
+
+  @Column({ name: 'locked_until', type: 'timestamp', nullable: true })
+  lockedUntil: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

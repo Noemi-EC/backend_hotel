@@ -8,6 +8,9 @@ export class Company {
   @Column({ length: 100 })
   name: string;
 
+  @Column({ length: 11, unique: true, nullable: true })
+  ruc: string;
+
   @Column({ length: 255 })
   address: string;
 

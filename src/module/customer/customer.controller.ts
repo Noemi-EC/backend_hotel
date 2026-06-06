@@ -12,6 +12,12 @@ export class CustomerController {
     return this.customerService.create(createCustomerDto);
   }
 
+  // Alias esperado por el frontend
+  @Post('/create')
+  async createAlias(@Body() createCustomerDto: CreateCustomerDto) {
+    return this.customerService.create(createCustomerDto);
+  }
+
   @Get('/all')
   async findAll() {
     return this.customerService.findAll();

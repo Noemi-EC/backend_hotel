@@ -10,35 +10,63 @@ import { RolesGuard } from '../auth/guard/roles.guard';
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
-  @Roles('CUSTOMER', 'ADMIN')
+  @Roles('CUSTOMER', 'ADMIN', 'SUPERUSER')
   @Post('/add')
   async create(@Body() createBookDto: CreateBookDto, @Req() req) {
-    const userId: number = req.user.userId;
-    return this.bookService.create(createBookDto, userId);
+    return this.bookService.create(createBookDto, req.user.userId);
   }
 
-  @Roles('CUSTOMER', 'ADMIN')
+  // Alias esperado por el frontend
+  @Roles('CUSTOMER', 'ADMIN', 'SUPERUSER')
+  @Post('/create')
+  async createAlias(@Body() createBookDto: CreateBookDto, @Req() req) {
+    return this.bookService.create(createBookDto, req.user.userId);
+  }
+
+  @Roles('CUSTOMER', 'ADMIN', 'SUPERUSER')
   @Patch(':id/status/:status')
   async updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
     @Param('status') status: 'pending' | 'booked' | 'cancelled',
   ) {
-    const userId: number = req.user.userId;
-    return this.bookService.changeStatus(id, userId, status);
+    return this.bookService.changeStatus(id, req.user.userId, status);
   }
 
+  // Alias para status en body: PATCH /book/:id/status  { status: 'booked' }
+  @Roles('CUSTOMER', 'ADMIN', 'SUPERUSER')
+  @Patch(':id/status')
+  async updateStatusBody(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req,
+    @Body('status') status: 'pending' | 'booked' | 'cancelled',
+  ) {
+    return this.bookService.changeStatus(id, req.user.userId, status);
+  }
+
+  @Roles('ADMIN', 'SUPERUSER')
   @Get('admin/all')
-  @Roles('ADMIN')
   async findAll(@Req() req) {
-    const userId: number = req.user.userId;
-    return this.bookService.findAll(userId);
+    return this.bookService.findAll(req.user.userId);
   }
 
-  @Get('customer/all')
+  // Alias esperado por el frontend
+  @Roles('ADMIN', 'SUPERUSER')
+  @Get('all')
+  async findAllAlias(@Req() req) {
+    return this.bookService.findAll(req.user.userId);
+  }
+
   @Roles('CUSTOMER')
+  @Get('customer/all')
   async findAllByCustomer(@Req() req) {
-    const userId: number = req.user.userId;
-    return this.bookService.findAllByCustomer(userId);
+    return this.bookService.findAllByCustomer(req.user.userId);
+  }
+
+  // Alias esperado por el frontend
+  @Roles('CUSTOMER')
+  @Get('customer')
+  async findAllByCustomerAlias(@Req() req) {
+    return this.bookService.findAllByCustomer(req.user.userId);
   }
 }

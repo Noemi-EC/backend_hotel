@@ -33,6 +33,9 @@ export class Book {
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   price: number;
 
+  @Column({ name: 'confirmation_code', length: 50, unique: true, nullable: true })
+  confirmationCode: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

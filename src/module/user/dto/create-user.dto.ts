@@ -1,4 +1,4 @@
-import { IsString, MinLength, IsOptional } from 'class-validator';
+import { IsString, MinLength, IsOptional, IsInt } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
@@ -11,4 +11,12 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   role?: string;
+
+  @IsInt()
+  @IsOptional()
+  companyId?: number;
+
+  @IsInt()
+  @IsOptional()
+  hotelId?: number;
 }

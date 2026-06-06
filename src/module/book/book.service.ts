@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Book } from './entity/book.entity';
@@ -35,6 +35,18 @@ export class BookService {
     const room = await this.roomRepository.findOne({ where: { id: createBookDto.roomId } });
     if (!room) throw new NotFoundException('Habitación no encontrada');
 
+    const overlapping = await this.bookRepository
+      .createQueryBuilder('book')
+      .where('book.roomId = :roomId', { roomId: room.id })
+      .andWhere('book.status IN (:...statuses)', { statuses: ['pending', 'booked'] })
+      .andWhere('book.checkInDate < :checkOut', { checkOut: createBookDto.checkOutDate })
+      .andWhere('book.checkOutDate > :checkIn', { checkIn: createBookDto.checkInDate })
+      .getCount();
+
+    if (overlapping > 0) {
+      throw new ConflictException('La habitación no está disponible para las fechas seleccionadas');
+    }
+
     const bookData = BookFactory.create(createBookDto, room.id, customer.id);
     const book = this.bookRepository.create(bookData);
     const savedBook = await this.bookRepository.save(book);
@@ -55,7 +67,9 @@ export class BookService {
     if (!book) throw new NotFoundException('Reserva no encontrada');
 
     const customer = await this.customerRepository.findOne({ where: { userId } });
-    const admin = await this.userRepository.findOne({ where: { id: userId, role: 'ADMIN' } });
+    const admin = await this.userRepository.findOne({
+      where: [{ id: userId, role: 'ADMIN' }, { id: userId, role: 'SUPERUSER' }],
+    });
 
     if (!customer && !admin) {
       throw new NotFoundException('No autorizado para cambiar el estado de la reserva');
@@ -75,17 +89,10 @@ export class BookService {
 
     let message: string;
     switch (newStatus) {
-      case 'booked':
-        message = bookContext.booked();
-        break;
-      case 'cancelled':
-        message = bookContext.cancelled();
-        break;
-      case 'pending':
-        message = bookContext.pending();
-        break;
-      default:
-        throw new BadRequestException('Estado no válido');
+      case 'booked':   message = bookContext.booked(); break;
+      case 'cancelled': message = bookContext.cancelled(); break;
+      case 'pending':  message = bookContext.pending(); break;
+      default: throw new BadRequestException('Estado no válido');
     }
 
     await this.bookRepository.update(bookId, { status: newStatus });
@@ -111,26 +118,23 @@ export class BookService {
 
     const allStates = ['pending', 'booked', 'cancelled'];
     const availableTransitions = allStates.filter(
-      (state) => state !== book.status && bookContext.canTransitionTo(state),
+      (s) => s !== book.status && bookContext.canTransitionTo(s),
     );
 
     return { status: book.status, availableTransitions };
   }
 
   async findAll(userId: number): Promise<Book[]> {
-    const admin = await this.userRepository.findOne({ where: { id: userId, role: 'ADMIN' } });
+    const admin = await this.userRepository.findOne({
+      where: [{ id: userId, role: 'ADMIN' }, { id: userId, role: 'SUPERUSER' }],
+    });
     if (!admin) throw new NotFoundException('No autorizado para ver todas las reservas');
-
     return this.bookRepository.find({ relations: ['room', 'customer'] });
   }
 
   async findAllByCustomer(userId: number): Promise<Book[]> {
     const customer = await this.customerRepository.findOne({ where: { userId } });
     if (!customer) throw new NotFoundException('No existe ningún cliente asociado a este usuario');
-
-    return this.bookRepository.find({
-      where: { customerId: customer.id },
-      relations: ['room'],
-    });
+    return this.bookRepository.find({ where: { customerId: customer.id }, relations: ['room'] });
   }
 }
