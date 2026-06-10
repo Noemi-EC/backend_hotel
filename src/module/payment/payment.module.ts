@@ -5,9 +5,10 @@ import { Book } from '../book/entity/book.entity';
 import { Customer } from '../customer/entity/customer.entity';
 import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Payment, Book, Customer])],
+  imports: [TypeOrmModule.forFeature([Payment, Book, Customer]), UserModule],
   controllers: [PaymentController],
   providers: [PaymentService],
   exports: [PaymentService],

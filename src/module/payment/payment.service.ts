@@ -42,8 +42,29 @@ export class PaymentService {
     return payment;
   }
 
-  async findAll(): Promise<Payment[]> {
-    return this.paymentRepository.find({ relations: ['book', 'book.customer'] });
+  async findAll(hotelId?: number, companyId?: number): Promise<Payment[]> {
+    if (!hotelId && !companyId) {
+      return this.paymentRepository.find({ relations: ['book', 'book.customer'] });
+    }
+
+    if (companyId) {
+      return this.paymentRepository
+        .createQueryBuilder('payment')
+        .leftJoinAndSelect('payment.book', 'book')
+        .leftJoinAndSelect('book.customer', 'customer')
+        .leftJoin('book.room', 'room')
+        .leftJoin('room.hotel', 'hotel')
+        .where('hotel.companyId = :companyId', { companyId })
+        .getMany();
+    }
+
+    return this.paymentRepository
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.book', 'book')
+      .leftJoinAndSelect('book.customer', 'customer')
+      .leftJoin('book.room', 'room')
+      .where('room.hotelId = :hotelId', { hotelId })
+      .getMany();
   }
 
   async findByCustomer(userId: number): Promise<Payment[]> {
