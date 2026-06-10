@@ -24,8 +24,20 @@ export class RoomService {
     return this.roomRepository.save(room);
   }
 
-  async findAll(): Promise<Room[]> {
-    return this.roomRepository.find({ relations: ['hotel'] });
+  async findAll(hotelId?: number, companyId?: number): Promise<Room[]> {
+    if (!hotelId && !companyId) {
+      return this.roomRepository.find({ relations: ['hotel'] });
+    }
+
+    if (companyId) {
+      return this.roomRepository
+        .createQueryBuilder('room')
+        .leftJoinAndSelect('room.hotel', 'hotel')
+        .where('hotel.companyId = :companyId', { companyId })
+        .getMany();
+    }
+
+    return this.roomRepository.find({ where: { hotelId }, relations: ['hotel'] });
   }
 
   async getAvailableRooms(
