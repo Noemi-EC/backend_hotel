@@ -29,6 +29,7 @@ import { HotelModule } from './module/hotel/hotel.module';
         database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
+        ssl: { rejectUnauthorized: false }
       }),
     }),
     AuthModule,
