@@ -43,7 +43,23 @@ export class CustomerService {
     await this.customerRepository.delete(id);
   }
 
-  async findAll(): Promise<Customer[]> {
-    return this.customerRepository.find({ relations: ['user'] });
+  async findAll(hotelId?: number, companyId?: number): Promise<Customer[]> {
+    if (!hotelId && !companyId) {
+      return this.customerRepository.find({ relations: ['user'] });
+    }
+
+    if (companyId) {
+      return this.customerRepository
+        .createQueryBuilder('customer')
+        .leftJoinAndSelect('customer.user', 'user')
+        .where('user.companyId = :companyId', { companyId })
+        .getMany();
+    }
+
+    return this.customerRepository
+      .createQueryBuilder('customer')
+      .leftJoinAndSelect('customer.user', 'user')
+      .where('user.hotelId = :hotelId', { hotelId })
+      .getMany();
   }
 }

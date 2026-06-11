@@ -126,9 +126,39 @@ export class BookService {
 
   async findAll(userId: number): Promise<Book[]> {
     const admin = await this.userRepository.findOne({
-      where: [{ id: userId, role: 'ADMIN' }, { id: userId, role: 'SUPERUSER' }],
+      where: [
+        { id: userId, role: 'ADMIN' },
+        { id: userId, role: 'SUPERUSER' },
+        { id: userId, role: 'COMPANY_ADMIN' },
+      ],
     });
     if (!admin) throw new NotFoundException('No autorizado para ver todas las reservas');
+
+    if (admin.role === 'ADMIN') {
+      if (!admin.hotelId) {
+        throw new NotFoundException('Administrador sin hotel asignado');
+      }
+      return this.bookRepository
+        .createQueryBuilder('book')
+        .leftJoinAndSelect('book.room', 'room')
+        .leftJoinAndSelect('book.customer', 'customer')
+        .where('room.hotelId = :hotelId', { hotelId: admin.hotelId })
+        .getMany();
+    }
+
+    if (admin.role === 'COMPANY_ADMIN') {
+      if (!admin.companyId) {
+        throw new NotFoundException('Administrador de empresa sin companyId');
+      }
+      return this.bookRepository
+        .createQueryBuilder('book')
+        .leftJoinAndSelect('book.room', 'room')
+        .leftJoinAndSelect('book.customer', 'customer')
+        .leftJoin('room.hotel', 'hotel')
+        .where('hotel.companyId = :companyId', { companyId: admin.companyId })
+        .getMany();
+    }
+
     return this.bookRepository.find({ relations: ['room', 'customer'] });
   }
 
