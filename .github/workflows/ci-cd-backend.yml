@@ -1,0 +1,45 @@
+name: NestJS CI/CD - Hotel Backend
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Descargar el código del repositorio
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. Configurar Node.js (usando la v20 que es muy estable con NestJS 11)
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    # 3. Instalar dependencias limpias de producción y desarrollo
+    - name: Install dependencies
+      run: npm ci
+
+    # 4. Validar que el proyecto compila correctamente sin errores de TypeScript
+    - name: Build project
+      run: npm run build
+
+    # 5. Ejecutar todas las pruebas unitarias y de integración (TDD 20%)
+    - name: Run Jest Tests
+      run: npm test -- --verbose
+
+    # 6. Generar el reporte de cobertura
+    - name: Generate Coverage Report
+      run: npm run test:cov
+
+    # 7. Si todo lo anterior pasó con éxito, dispara el despliegue en Render, pero ahora existe la opción "After CI Checks Pass" en render
+    # - name: Trigger Deploy to Render
+    #   if: success() && github.event_name == 'push' # Solo despliega si los tests pasaron y es un push real (no un PR)
+    #   run: |
+    #     curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
