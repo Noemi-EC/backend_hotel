@@ -5,6 +5,7 @@ import { Payment } from './entity/payment.entity';
 import { Book } from '../book/entity/book.entity';
 import { Customer } from '../customer/entity/customer.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { generateVoucherPdf } from './pdf/voucher-pdf.generator';
 
 @Injectable()
 export class PaymentService {
@@ -87,12 +88,13 @@ export class PaymentService {
   async getVoucher(bookId: number) {
     const book = await this.bookRepository.findOne({
       where: { id: bookId },
-      relations: ['room', 'customer'],
+      relations: ['room', 'room.hotel', 'customer'],
     });
     if (!book) throw new NotFoundException('Reserva no encontrada');
     if (!book.confirmationCode) throw new BadRequestException('Esta reserva no tiene pago registrado');
 
     const payment = await this.paymentRepository.findOne({ where: { bookId } });
+    if (!payment) throw new NotFoundException('Pago no encontrado');
 
     return {
       confirmationCode: book.confirmationCode,
@@ -103,9 +105,24 @@ export class PaymentService {
         status: book.status,
         price: book.price,
       },
-      room: { code: book.room?.code, category: book.room?.category },
-      customer: { name: book.customer?.name, lastName: book.customer?.lastName, email: book.customer?.email },
-      payment: { amount: payment?.amount, cardLastDigits: payment?.cardLastDigits, date: payment?.createdAt },
+      hotel: {
+        name: book.room?.hotel?.name,
+        address: book.room?.hotel?.address,
+        phone: book.room?.hotel?.phone,
+      },
+      room: { code: book.room?.code, category: book.room?.category, price: book.room?.price },
+      customer: {
+        name: book.customer?.name,
+        lastName: book.customer?.lastName,
+        email: book.customer?.email,
+        dni: book.customer?.dni,
+      },
+      payment: { amount: payment.amount, cardLastDigits: payment.cardLastDigits, date: payment.createdAt },
     };
+  }
+
+  async getVoucherPdf(bookId: number): Promise<Buffer> {
+    const voucher = await this.getVoucher(bookId);
+    return generateVoucherPdf(voucher);
   }
 }
