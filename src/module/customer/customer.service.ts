@@ -34,7 +34,10 @@ export class CustomerService {
     return this.customerRepository.save(customer);
   }
 
-  async update(id: number, updateData: UpdateCustomerDto): Promise<Customer | null> {
+  async update(
+    id: number,
+    updateData: UpdateCustomerDto,
+  ): Promise<Customer | null> {
     await this.customerRepository.update(id, updateData);
     return this.customerRepository.findOne({ where: { id } });
   }

@@ -1,4 +1,12 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Room } from '../../room/entity/room.entity';
 import { Customer } from '../../customer/entity/customer.entity';
 
@@ -33,7 +41,12 @@ export class Book {
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   price: number;
 
-  @Column({ name: 'confirmation_code', length: 50, unique: true, nullable: true })
+  @Column({
+    name: 'confirmation_code',
+    length: 50,
+    unique: true,
+    nullable: true,
+  })
   confirmationCode: string;
 
   @CreateDateColumn({ name: 'created_at' })

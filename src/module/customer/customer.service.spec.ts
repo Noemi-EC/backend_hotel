@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 import { CustomerService } from './customer.service';
 import { Customer } from './entity/customer.entity';
@@ -9,14 +8,14 @@ import { UserService } from '../user/user.service';
 describe('CustomerService', () => {
   let service: CustomerService;
 
-    const mockCustomerRepository = {
-      create: jest.fn(),
-      save: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      findOne: jest.fn(),
-      find: jest.fn(),
-    };
+  const mockCustomerRepository = {
+    create: jest.fn(),
+    save: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    findOne: jest.fn(),
+    find: jest.fn(),
+  };
 
   const mockUserService = {
     create: jest.fn(),
@@ -93,7 +92,7 @@ describe('CustomerService', () => {
     expect(result.name).toBe('Juan');
     expect(result.dni).toBe('12345678');
   });
-    it('debe actualizar un cliente correctamente', async () => {
+  it('debe actualizar un cliente correctamente', async () => {
     const customerId = 1;
 
     const customerUpdated = {
@@ -106,21 +105,21 @@ describe('CustomerService', () => {
 
     mockCustomerRepository.update = jest.fn().mockResolvedValue(undefined);
 
-    mockCustomerRepository.findOne = jest.fn().mockResolvedValue(customerUpdated);
+    mockCustomerRepository.findOne = jest
+      .fn()
+      .mockResolvedValue(customerUpdated);
 
     const result = await service.update(customerId, {
       email: 'nuevo@test.com',
     });
 
-    expect(mockCustomerRepository.update).toHaveBeenCalledWith(
-      customerId,
-      {
-        email: 'nuevo@test.com',
-      },
-    );
+    expect(mockCustomerRepository.update).toHaveBeenCalledWith(customerId, {
+      email: 'nuevo@test.com',
+    });
 
     expect(result?.email).toBe('nuevo@test.com');
   });
+
   it('debe eliminar un cliente correctamente', async () => {
     mockCustomerRepository.delete = jest.fn().mockResolvedValue(undefined);
 
@@ -128,6 +127,7 @@ describe('CustomerService', () => {
 
     expect(mockCustomerRepository.delete).toHaveBeenCalledWith(1);
   });
+
   it('debe listar todos los clientes', async () => {
     const customers = [
       {
@@ -150,4 +150,4 @@ describe('CustomerService', () => {
 
     expect(result.length).toBe(2);
   });
- });
+});

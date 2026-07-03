@@ -1,4 +1,12 @@
-import { Controller, Get, Query, ParseIntPipe, Req, UseGuards, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  ParseIntPipe,
+  Req,
+  UseGuards,
+  NotFoundException,
+} from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
@@ -146,6 +154,10 @@ export class DashboardController {
       // Here occupancy is inherently per hotel; so COMPANY_ADMIN should request per-hotel occupancy via hotelId param.
     }
 
-    return this.dashboardService.getOccupancyRate(resolvedHotelId, new Date(startDate), new Date(endDate));
+    return this.dashboardService.getOccupancyRate(
+      resolvedHotelId,
+      new Date(startDate),
+      new Date(endDate),
+    );
   }
 }

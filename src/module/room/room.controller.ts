@@ -1,4 +1,17 @@
-import { Controller, Post, Get, Body, UseGuards, Param, Put, Delete, ParseIntPipe, Query, Req, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  UseGuards,
+  Param,
+  Put,
+  Delete,
+  ParseIntPipe,
+  Query,
+  Req,
+  NotFoundException,
+} from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
@@ -27,12 +40,16 @@ export class RoomController {
   @Get('/all')
   async findAll(@Req() req: AuthRequest) {
     const user = await this.userService.findById(req.user.userId);
-    if ((req.user.role === 'ADMIN' || req.user.role === 'CUSTOMER') && !user?.hotelId) {
+    if (
+      (req.user.role === 'ADMIN' || req.user.role === 'CUSTOMER') &&
+      !user?.hotelId
+    ) {
       throw new NotFoundException('Usuario sin hotel asignado');
     }
     if (req.user.role === 'COMPANY_ADMIN') {
       const companyId = user?.companyId;
-      if (!companyId) throw new NotFoundException('Administrador de empresa sin companyId');
+      if (!companyId)
+        throw new NotFoundException('Administrador de empresa sin companyId');
       return this.roomService.findAll(undefined, companyId);
     }
     if (req.user.role === 'SUPERUSER') {
@@ -71,7 +88,10 @@ export class RoomController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPERUSER')
   @Put('/update/:id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() updateRoomDto: UpdateRoomDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRoomDto: UpdateRoomDto,
+  ) {
     return this.roomService.update(id, updateRoomDto);
   }
 

@@ -9,7 +9,10 @@ import { Payment } from '../payment/entity/payment.entity';
 import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Customer, Room, Book, Payment]), UserModule],
+  imports: [
+    TypeOrmModule.forFeature([Customer, Room, Book, Payment]),
+    UserModule,
+  ],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

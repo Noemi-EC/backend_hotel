@@ -35,12 +35,22 @@ export class UserService {
     return this.userRepository.findOne({ where: { id } });
   }
 
-  async updateLoginAttempts(id: number, attempts: number, lockedUntil: Date | null): Promise<void> {
-    await this.userRepository.update(id, { loginAttempts: attempts, lockedUntil: lockedUntil ?? undefined });
+  async updateLoginAttempts(
+    id: number,
+    attempts: number,
+    lockedUntil: Date | null,
+  ): Promise<void> {
+    await this.userRepository.update(id, {
+      loginAttempts: attempts,
+      lockedUntil: lockedUntil ?? undefined,
+    });
   }
 
   async resetLoginAttempts(id: number): Promise<void> {
-    await this.userRepository.update(id, { loginAttempts: 0, lockedUntil: undefined });
+    await this.userRepository.update(id, {
+      loginAttempts: 0,
+      lockedUntil: undefined,
+    });
   }
 
   async remove(id: number): Promise<void> {

@@ -1,33 +1,40 @@
-import { IsNotEmpty, IsString, IsInt } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsInt,
+  MinLength,
+} from 'class-validator';
 
 export class CreateCustomerDto {
   @IsString()
   @IsNotEmpty()
-  username: string;
+  username!: string;
 
   @IsString()
   @IsNotEmpty()
-  password: string;
+  @MinLength(6)
+  password!: string;
 
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsString()
   @IsNotEmpty()
-  lastName: string;
+  lastName!: string;
 
   @IsString()
   @IsNotEmpty()
-  dni: string;
+  dni!: string;
 
-  @IsString()
+  @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsInt()
-  companyId: number;
+  companyId!: number;
 
   @IsInt()
-  hotelId: number;
+  hotelId!: number;
 }

@@ -15,7 +15,8 @@ import { HotelModule } from './module/hotel/hotel.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.prod.env',
+      envFilePath:
+        process.env.NODE_ENV === 'production' ? '.prod.env' : '.env',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -29,7 +30,10 @@ import { HotelModule } from './module/hotel/hotel.module';
         database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
-        ssl: { rejectUnauthorized: false }
+        ssl:
+          configService.get<string>('NODE_ENV') === 'production'
+            ? { rejectUnauthorized: false }
+            : false,
       }),
     }),
     AuthModule,
