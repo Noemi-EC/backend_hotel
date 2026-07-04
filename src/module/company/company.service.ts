@@ -26,51 +26,49 @@ export class CompanyService {
     if (existing) throw new ConflictException('El RUC ya está registrado');
 
     return this.dataSource.transaction(async (manager) => {
-      const company = manager.create(Company, {
-        name: dto.companyName,
-        ruc: dto.ruc,
-        address: dto.companyAddress,
-        phone: dto.companyPhone,
-        email: dto.companyEmail,
-      });
-      const savedCompany = await manager.save(company);
+      try {
+        const company = manager.create(Company, {
+          name: dto.companyName,
+          ruc: dto.ruc,
+          address: dto.companyAddress,
+          phone: dto.companyPhone,
+          email: dto.companyEmail,
+        });
+        const savedCompany = await manager.save(company);
 
-      const hotel = manager.create(Hotel, {
-        companyId: savedCompany.id,
-        name: dto.hotelName,
-        address: dto.hotelAddress,
-        phone: dto.hotelPhone,
-        email: dto.hotelEmail,
-      });
-      const savedHotel = await manager.save(hotel);
+        const hotel = manager.create(Hotel, {
+          companyId: savedCompany.id,
+          name: dto.hotelName,
+          address: dto.hotelAddress,
+          phone: dto.hotelPhone,
+          email: dto.hotelEmail,
+        });
+        const savedHotel = await manager.save(hotel);
 
-      const hashedPassword = await hash(dto.adminPassword, 10);
-      const admin = manager.create(User, {
-        username: dto.adminUsername,
-        password: hashedPassword,
-        role: 'ADMIN',
-        companyId: savedCompany.id,
-        hotelId: savedHotel.id,
-      });
-      const savedAdmin = await manager.save(admin);
+        const hashedPassword = await hash(dto.adminPassword, 10);
+        const admin = manager.create(User, {
+          username: dto.adminUsername,
+          password: hashedPassword,
+          role: 'ADMIN',
+          companyId: savedCompany.id,
+          hotelId: savedHotel.id,
+        });
+        const savedAdmin = await manager.save(admin);
 
-      return {
-        message: 'Empresa y hotel registrados exitosamente',
-        company: savedCompany,
-        hotel: savedHotel,
-        admin: {
-          id: savedAdmin.id,
-          username: savedAdmin.username,
-          role: savedAdmin.role,
-        },
-      };
-
-      return {
-        message: 'Empresa y hotel registrados exitosamente',
-        company,
-        hotel,
-        admin: { id: admin.id, username: admin.username, role: admin.role },
-      };
+        return {
+          message: 'Empresa y hotel registrados exitosamente',
+          company: savedCompany,
+          hotel: savedHotel,
+          admin: {
+            id: savedAdmin.id,
+            username: savedAdmin.username,
+            role: savedAdmin.role,
+          },
+        };
+      } catch (error) {
+        console.error('Error en transacción de registro:', error);
+        throw error;
+      }
     });
   }
 
