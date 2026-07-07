@@ -19,44 +19,58 @@ ZAP by [Checkmarx](https://checkmarx.com/).
 
 | Level | Razón | Site | Descripción | Statistic |
 | --- | --- | --- | --- | --- |
-| Bajo | Advertencia |  | ZAP warnings logged - see the zap.log file for details | 254    |
+| Medio | Exceeded Low |  | Percentage of memory used | 84    |
+| Bajo | Advertencia |  | ZAP errors logged - see the zap.log file for details | 1    |
+| Bajo | Advertencia |  | ZAP warnings logged - see the zap.log file for details | 87    |
+| Bajo | Exceeded High | http://localhost:3060 | Percentage of responses with status code 4xx | 99 % |
+| Información | Informativo | http://192.168.101.13:8080 | Percentage of responses with status code 1xx | 100 % |
+| Información | Informativo | http://192.168.101.13:8080 | Percentage of endpoints with method GET | 100 % |
+| Información | Informativo | http://192.168.101.13:8080 | Count of total endpoints | 1    |
 | Información | Informativo | http://edge.microsoft.com | Percentage of responses with status code 4xx | 100 % |
 | Información | Informativo | http://edge.microsoft.com | Percentage of slow responses | 100 % |
-| Información | Informativo | http://localhost:3060 | Percentage of responses with status code 2xx | 26 % |
-| Información | Informativo | http://localhost:3060 | Percentage of responses with status code 3xx | 1 % |
-| Información | Informativo | http://localhost:3060 | Percentage of responses with status code 4xx | 72 % |
-| Información | Informativo | http://localhost:3060 | Percentage of endpoints with content type application/json | 94 % |
-| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method DELETE | 12 % |
-| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method GET | 39 % |
-| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method OPTIONS | 5 % |
-| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method PATCH | 5 % |
-| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method POST | 26 % |
-| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method PUT | 10 % |
-| Información | Informativo | http://localhost:3060 | Count of total endpoints | 56    |
-| Información | Informativo | http://localhost:3060 | Percentage of slow responses | 4 % |
-| Información | Informativo | http://localhost:8080 | Percentage of responses with status code 2xx | 100 % |
-| Información | Informativo | http://localhost:8080 | Percentage of endpoints with content type application/javascript | 28 % |
-| Información | Informativo | http://localhost:8080 | Percentage of endpoints with content type image/jpeg | 28 % |
-| Información | Informativo | http://localhost:8080 | Percentage of endpoints with content type image/vnd.microsoft.icon | 14 % |
-| Información | Informativo | http://localhost:8080 | Percentage of endpoints with content type text/html | 28 % |
+| Información | Informativo | http://localhost:3060 | Percentage of responses with status code 2xx | 3 % |
+| Información | Informativo | http://localhost:3060 | Percentage of endpoints with content type application/json | 89 % |
+| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method DELETE | 13 % |
+| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method GET | 36 % |
+| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method OPTIONS | 10 % |
+| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method PATCH | 4 % |
+| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method POST | 23 % |
+| Información | Informativo | http://localhost:3060 | Percentage of endpoints with method PUT | 13 % |
+| Información | Informativo | http://localhost:3060 | Count of total endpoints | 69    |
+| Información | Informativo | http://localhost:3060 | Percentage of slow responses | 2 % |
+| Información | Informativo | http://localhost:8080 | Percentage of responses with status code 2xx | 98 % |
+| Información | Informativo | http://localhost:8080 | Percentage of responses with status code 4xx | 1 % |
+| Información | Informativo | http://localhost:8080 | Percentage of endpoints with content type application/javascript | 52 % |
+| Información | Informativo | http://localhost:8080 | Percentage of endpoints with content type font/woff2 | 10 % |
+| Información | Informativo | http://localhost:8080 | Percentage of endpoints with content type image/jpeg | 10 % |
+| Información | Informativo | http://localhost:8080 | Percentage of endpoints with content type image/vnd.microsoft.icon | 5 % |
+| Información | Informativo | http://localhost:8080 | Percentage of endpoints with content type text/html | 21 % |
 | Información | Informativo | http://localhost:8080 | Percentage of endpoints with method GET | 100 % |
-| Información | Informativo | http://localhost:8080 | Count of total endpoints | 7    |
-| Información | Informativo | http://msedge.b.tlu.dl.delivery.mp.microsoft.com | Percentage of responses with status code 2xx | 100 % |
-| Información | Informativo | http://msedge.b.tlu.dl.delivery.mp.microsoft.com | Percentage of slow responses | 10 % |
+| Información | Informativo | http://localhost:8080 | Count of total endpoints | 19    |
 | Información | Informativo | http://msedge.f.tlu.dl.delivery.mp.microsoft.com | Percentage of responses with status code 2xx | 100 % |
-| Información | Informativo | http://msedge.f.tlu.dl.delivery.mp.microsoft.com | Percentage of slow responses | 42 % |
+| Información | Informativo | http://msedge.f.tlu.dl.delivery.mp.microsoft.com | Percentage of slow responses | 33 % |
 | Información | Informativo | https://data-edge.smartscreen.microsoft.com | Percentage of responses with status code 2xx | 100 % |
 | Información | Informativo | https://data-edge.smartscreen.microsoft.com | Percentage of slow responses | 100 % |
 | Información | Informativo | https://edge-consumer-static.azureedge.net | Percentage of responses with status code 2xx | 100 % |
 | Información | Informativo | https://edge-consumer-static.azureedge.net | Percentage of slow responses | 100 % |
 | Información | Informativo | https://edge.microsoft.com | Percentage of responses with status code 2xx | 100 % |
-| Información | Informativo | https://edge.microsoft.com | Percentage of endpoints with content type application/json | 50 % |
-| Información | Informativo | https://edge.microsoft.com | Percentage of endpoints with method GET | 25 % |
-| Información | Informativo | https://edge.microsoft.com | Percentage of endpoints with method POST | 75 % |
-| Información | Informativo | https://edge.microsoft.com | Count of total endpoints | 4    |
-| Información | Informativo | https://edge.microsoft.com | Percentage of slow responses | 80 % |
+| Información | Informativo | https://edge.microsoft.com | Percentage of endpoints with content type application/json | 66 % |
+| Información | Informativo | https://edge.microsoft.com | Percentage of endpoints with method GET | 33 % |
+| Información | Informativo | https://edge.microsoft.com | Percentage of endpoints with method POST | 66 % |
+| Información | Informativo | https://edge.microsoft.com | Count of total endpoints | 6    |
+| Información | Informativo | https://edge.microsoft.com | Percentage of slow responses | 72 % |
 | Información | Informativo | https://editor.svc.cloud.microsoft | Percentage of responses with status code 2xx | 100 % |
 | Información | Informativo | https://editor.svc.cloud.microsoft | Percentage of slow responses | 100 % |
+| Información | Informativo | https://fonts.googleapis.com | Percentage of responses with status code 2xx | 100 % |
+| Información | Informativo | https://fonts.googleapis.com | Percentage of endpoints with content type text/css | 100 % |
+| Información | Informativo | https://fonts.googleapis.com | Percentage of endpoints with method GET | 100 % |
+| Información | Informativo | https://fonts.googleapis.com | Count of total endpoints | 1    |
+| Información | Informativo | https://fonts.googleapis.com | Percentage of slow responses | 100 % |
+| Información | Informativo | https://fonts.gstatic.com | Percentage of responses with status code 2xx | 100 % |
+| Información | Informativo | https://fonts.gstatic.com | Percentage of endpoints with content type font/woff2 | 100 % |
+| Información | Informativo | https://fonts.gstatic.com | Percentage of endpoints with method GET | 100 % |
+| Información | Informativo | https://fonts.gstatic.com | Count of total endpoints | 1    |
+| Información | Informativo | https://fonts.gstatic.com | Percentage of slow responses | 100 % |
 | Información | Informativo | https://msedgedriver.microsoft.com | Percentage of responses with status code 2xx | 100 % |
 | Información | Informativo | https://msedgedriver.microsoft.com | Percentage of endpoints with content type application/octet-stream | 100 % |
 | Información | Informativo | https://msedgedriver.microsoft.com | Percentage of endpoints with method GET | 100 % |
@@ -65,9 +79,12 @@ ZAP by [Checkmarx](https://checkmarx.com/).
 | Información | Informativo | https://nav-edge.smartscreen.microsoft.com | Percentage of responses with status code 2xx | 100 % |
 | Información | Informativo | https://nav-edge.smartscreen.microsoft.com | Percentage of slow responses | 100 % |
 | Información | Informativo | https://plausible.io | Percentage of responses with status code 2xx | 100 % |
+| Información | Informativo | https://plausible.io | Percentage of endpoints with content type text/plain | 100 % |
+| Información | Informativo | https://plausible.io | Percentage of endpoints with method POST | 100 % |
+| Información | Informativo | https://plausible.io | Count of total endpoints | 1    |
 | Información | Informativo | https://plausible.io | Percentage of slow responses | 100 % |
 | Información | Informativo | https://telem-edge.smartscreen.microsoft.com | Percentage of responses with status code 2xx | 100 % |
-| Información | Informativo | https://telem-edge.smartscreen.microsoft.com | Percentage of slow responses | 100 % |
+| Información | Informativo | https://telem-edge.smartscreen.microsoft.com | Percentage of slow responses | 75 % |
 | Información | Informativo | https://www.bing.com | Percentage of responses with status code 2xx | 100 % |
 | Información | Informativo | https://www.bing.com | Percentage of slow responses | 100 % |
 | Información | Informativo | https://www.googleapis.com | Percentage of responses with status code 2xx | 100 % |
