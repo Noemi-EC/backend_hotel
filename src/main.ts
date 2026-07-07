@@ -7,7 +7,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const expressInstance = app.getHttpAdapter().getInstance();
+  const expressInstance = app.getHttpAdapter().getInstance() as {
+    disable?: (header: string) => void;
+  };
   if (typeof expressInstance.disable === 'function') {
     expressInstance.disable('x-powered-by');
   }
@@ -37,7 +39,9 @@ async function bootstrap() {
       'max-age=31536000; includeSubDomains',
     );
     const isProd = process.env.NODE_ENV === 'production';
-    const styleDirective = isProd ? "style-src 'self'" : "style-src 'self' 'unsafe-inline'";
+    const styleDirective = isProd
+      ? "style-src 'self'"
+      : "style-src 'self' 'unsafe-inline'";
     res.setHeader(
       'Content-Security-Policy',
       `default-src 'self'; script-src 'self'; ${styleDirective}; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'`,

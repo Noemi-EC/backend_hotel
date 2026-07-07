@@ -45,7 +45,7 @@ export class CompanyService {
         });
         const savedHotel = await manager.save(hotel);
 
-        const hashedPassword = await hash(dto.adminPassword, 10);
+        const hashedPassword = String(await hash(dto.adminPassword, 10));
         const admin = manager.create(User, {
           username: dto.adminUsername,
           password: hashedPassword,
@@ -65,9 +65,17 @@ export class CompanyService {
             role: savedAdmin.role,
           },
         };
-      } catch (error) {
-        console.error('Error en transacción de registro:', error);
-        throw error;
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error en transacción de registro:', error.message);
+          throw error;
+        }
+
+        console.error(
+          'Error en transacción de registro:',
+          'Error desconocido en la transacción',
+        );
+        throw new Error('Error desconocido en la transacción');
       }
     });
   }

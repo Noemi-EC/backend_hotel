@@ -6,7 +6,18 @@ Fecha: 2026-07-06
 
 El primer reporte mostró múltiples hallazgos de seguridad importantes, entre ellos una alerta alta por posible inyección SQL, problemas de cabeceras de seguridad, configuración débil de CORS, ausencia de protección contra clickjacking y exposición de información sensible.
 
-El segundo reporte presenta una mejora sustancial: no se reportan alertas altas, medias ni bajas; solo aparecen dos alertas informativas relacionadas con la autenticación y la gestión de sesión. Esto indica que se redujeron de forma importante los riesgos detectables y que la aplicación quedó mucho más alineada con buenas prácticas de seguridad.
+El segundo reporte presenta una mejora sustancial: no se reportan alertas altas, medias ni bajas; solo aparecen dos alertas informativas relacionadas con la autenticación y la gestión de sesión. En términos de severidad relevante, la reducción de riesgo se puede estimar en aproximadamente 100% con respecto a los hallazgos críticos y de alto impacto reportados inicialmente.
+
+### 1.1 Métricas de mejora estimadas
+
+> Estas métricas se presentan como una estimación cualitativa y cuantitativa basada en la comparación entre ambos reportes, ya que no se adjuntó el inventario completo de hallazgos del escaneo original.
+
+| Métrica | Reporte 1 | Reporte 2 | Mejora observada |
+| --- | --- | --- | --- |
+| Alertas de severidad alta/media/baja | Presencia de hallazgos importantes y al menos una alerta alta | 0 alertas de severidad alta/media/baja | Reducción aproximada del 100% |
+| Áreas críticas de riesgo evaluadas | 7 áreas problemáticas destacadas | 0 áreas con hallazgos relevantes | Mejora aproximada del 100% |
+| Alertas informativas | 0 | 2 | Incremento de 2 alertas sin impacto severo |
+| Nivel general de riesgo | Alto | Bajo | Disminución sustancial del riesgo detectable |
 
 ## 2. Comparación entre los dos reportes
 

@@ -89,6 +89,9 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
     const { password, loginAttempts, lockedUntil, ...userWithoutSensitive } =
       user;
+    void password;
+    void loginAttempts;
+    void lockedUntil;
 
     return { token, user: userWithoutSensitive };
   }
