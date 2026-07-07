@@ -20,8 +20,8 @@ import { HotelModule } from './module/hotel/hotel.module';
         process.env.NODE_ENV === 'production'
           ? '.prod.env'
           : existsSync('.env.local')
-          ? '.env.local'
-          : '.env',
+            ? '.env.local'
+            : '.env',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
