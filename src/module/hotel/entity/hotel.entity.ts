@@ -25,6 +25,9 @@ export class Hotel {
   @Column({ length: 150, nullable: true })
   email: string;
 
+  @Column({ default: true })
+  active: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

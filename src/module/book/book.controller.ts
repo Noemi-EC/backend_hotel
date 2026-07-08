@@ -44,14 +44,14 @@ export class BookController {
     return this.bookService.changeStatus(id, req.user.userId, status);
   }
 
-  @Roles('ADMIN', 'SUPERUSER')
+  @Roles('ADMIN', 'SUPERUSER', 'COMPANY_ADMIN')
   @Get('admin/all')
   async findAll(@Req() req) {
     return this.bookService.findAll(req.user.userId);
   }
 
   // Alias esperado por el frontend
-  @Roles('ADMIN', 'SUPERUSER')
+  @Roles('ADMIN', 'SUPERUSER', 'COMPANY_ADMIN')
   @Get('all')
   async findAllAlias(@Req() req) {
     return this.bookService.findAll(req.user.userId);

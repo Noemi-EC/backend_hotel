@@ -19,7 +19,25 @@ export class CompanyService {
     const existing = await this.companyRepository.findOne({ where: { ruc: dto.ruc } });
     if (existing) throw new ConflictException('El RUC ya está registrado');
 
+    const wantsHotelAdmin = !!(dto.hotelAdminUsername || dto.hotelAdminPassword);
+    if (wantsHotelAdmin && !(dto.hotelAdminUsername && dto.hotelAdminPassword)) {
+      throw new ConflictException('Debe proporcionar usuario y contraseña del administrador del hotel');
+    }
+    if (wantsHotelAdmin && dto.hotelAdminUsername === dto.adminUsername) {
+      throw new ConflictException(
+        'El usuario del administrador del hotel debe ser distinto al del administrador de la empresa',
+      );
+    }
+
     return this.dataSource.transaction(async (manager) => {
+      const existingCompanyAdmin = await manager.findOne(User, { where: { username: dto.adminUsername } });
+      if (existingCompanyAdmin) throw new ConflictException('El usuario del administrador de la empresa ya existe');
+
+      if (wantsHotelAdmin) {
+        const existingHotelAdmin = await manager.findOne(User, { where: { username: dto.hotelAdminUsername } });
+        if (existingHotelAdmin) throw new ConflictException('El usuario del administrador del hotel ya existe');
+      }
+
       const company = await manager.save(Company, {
         name: dto.companyName,
         ruc: dto.ruc,
@@ -36,20 +54,34 @@ export class CompanyService {
         email: dto.hotelEmail,
       });
 
-      const hashedPassword = await bcrypt.hash(dto.adminPassword, 10);
-      const admin = await manager.save(User, {
+      const hashedCompanyAdminPassword = await bcrypt.hash(dto.adminPassword, 10);
+      const companyAdmin = await manager.save(User, {
         username: dto.adminUsername,
-        password: hashedPassword,
-        role: 'ADMIN',
+        password: hashedCompanyAdminPassword,
+        role: 'COMPANY_ADMIN',
         companyId: company.id,
-        hotelId: hotel.id,
       });
+
+      let hotelAdmin: User | null = null;
+      if (wantsHotelAdmin) {
+        const hashedHotelAdminPassword = await bcrypt.hash(dto.hotelAdminPassword as string, 10);
+        hotelAdmin = await manager.save(User, {
+          username: dto.hotelAdminUsername,
+          password: hashedHotelAdminPassword,
+          role: 'ADMIN',
+          companyId: company.id,
+          hotelId: hotel.id,
+        });
+      }
 
       return {
         message: 'Empresa y hotel registrados exitosamente',
         company,
         hotel,
-        admin: { id: admin.id, username: admin.username, role: admin.role },
+        companyAdmin: { id: companyAdmin.id, username: companyAdmin.username, role: companyAdmin.role },
+        hotelAdmin: hotelAdmin
+          ? { id: hotelAdmin.id, username: hotelAdmin.username, role: hotelAdmin.role }
+          : null,
       };
     });
   }

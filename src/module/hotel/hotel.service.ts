@@ -69,13 +69,22 @@ export class HotelService {
     return hotel;
   }
 
-  async findByCompany(companyId: number): Promise<Hotel[]> {
-    return this.hotelRepository.find({ where: { companyId }, relations: ['company'] });
+  async findByCompany(companyId: number, activeOnly = false): Promise<Hotel[]> {
+    const where = activeOnly ? { companyId, active: true } : { companyId };
+    return this.hotelRepository.find({ where, relations: ['company'] });
   }
 
   async update(id: number, dto: Partial<CreateHotelDto>): Promise<Hotel> {
     await this.findOne(id);
-    await this.hotelRepository.update(id, dto);
+    // Solo persistimos los campos propios del hotel (evita que lleguen datos de admin al update)
+    const { name, address, phone, email, companyId } = dto;
+    await this.hotelRepository.update(id, { name, address, phone, email, companyId });
+    return this.findOne(id);
+  }
+
+  async setActive(id: number, active: boolean): Promise<Hotel> {
+    await this.findOne(id);
+    await this.hotelRepository.update(id, { active });
     return this.findOne(id);
   }
 

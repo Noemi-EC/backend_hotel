@@ -30,6 +30,9 @@ export class User {
   @JoinColumn({ name: 'hotel_id' })
   hotel: Hotel;
 
+  @Column({ default: true })
+  active: boolean;
+
   @Column({ name: 'login_attempts', default: 0 })
   loginAttempts: number;
 

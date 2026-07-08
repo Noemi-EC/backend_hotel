@@ -43,6 +43,10 @@ export class AuthService {
     const user = await this.userService.findOne(username);
     if (!user) throw new UnauthorizedException('Usuario no encontrado');
 
+    if (user.active === false) {
+      throw new UnauthorizedException('Usuario desactivado. Contacte al administrador');
+    }
+
     if (user.lockedUntil && new Date() < new Date(user.lockedUntil)) {
       const minutesLeft = Math.ceil(
         (new Date(user.lockedUntil).getTime() - Date.now()) / 60000,

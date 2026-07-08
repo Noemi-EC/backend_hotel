@@ -114,17 +114,35 @@ export class DashboardService {
     });
   }
 
-  async getOccupancyRate(hotelId: number, startDate: Date, endDate: Date): Promise<{ occupancyRate: number }> {
-    const totalRooms = await this.roomRepository.count({ where: { hotelId } });
+  async getOccupancyRate(
+    startDate: Date,
+    endDate: Date,
+    hotelId?: number,
+    companyId?: number,
+  ): Promise<{ occupancyRate: number }> {
+    let totalRooms: number;
+    const bookingsQuery = this.bookRepository.createQueryBuilder('book').innerJoin('book.room', 'room');
+
+    if (hotelId) {
+      totalRooms = await this.roomRepository.count({ where: { hotelId } });
+      bookingsQuery.where('room.hotelId = :hotelId', { hotelId });
+    } else if (companyId) {
+      totalRooms = await this.roomRepository
+        .createQueryBuilder('room')
+        .innerJoin('room.hotel', 'hotel')
+        .where('hotel.companyId = :companyId', { companyId })
+        .getCount();
+      bookingsQuery.innerJoin('room.hotel', 'hotel').where('hotel.companyId = :companyId', { companyId });
+    } else {
+      totalRooms = await this.roomRepository.count();
+    }
+
     if (totalRooms === 0) return { occupancyRate: 0 };
 
     const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000);
     const totalAvailable = totalRooms * totalDays;
 
-    const bookings = await this.bookRepository
-      .createQueryBuilder('book')
-      .innerJoin('book.room', 'room')
-      .where('room.hotelId = :hotelId', { hotelId })
+    const bookings = await bookingsQuery
       .andWhere('book.status IN (:...statuses)', { statuses: ['pending', 'booked'] })
       .andWhere('book.checkInDate < :endDate', { endDate })
       .andWhere('book.checkOutDate > :startDate', { startDate })

@@ -12,6 +12,11 @@ export class RegisterCompanyDto {
   @IsString() @IsOptional() hotelPhone?: string;
   @IsEmail() @IsOptional() hotelEmail?: string;
 
+  // Administrador de la empresa (COMPANY_ADMIN) — obligatorio, no vinculado a un hotel específico
   @IsString() @IsNotEmpty() adminUsername: string;
   @IsString() @MinLength(6) adminPassword: string;
+
+  // Administrador del hotel (ADMIN) — opcional, credenciales independientes del admin de empresa
+  @IsString() @IsOptional() hotelAdminUsername?: string;
+  @IsString() @IsOptional() @MinLength(6) hotelAdminPassword?: string;
 }

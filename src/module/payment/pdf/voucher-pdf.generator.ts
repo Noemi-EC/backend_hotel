@@ -54,15 +54,24 @@ export function generateVoucherPdf(data: VoucherPdfData): Promise<Buffer> {
       .text('Comprobante de Reserva', { align: 'left' })
       .moveDown(0.3);
 
-    doc
-      .roundedRect(doc.x, doc.y, 250, 30, 4)
-      .fillAndStroke('#eef0fc', '#3f51b5');
+    const boxX = doc.x;
+    const boxY = doc.y;
+    const boxWidth = 260;
+    const boxHeight = 30;
+
+    doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 4).fillAndStroke('#eef0fc', '#3f51b5');
+
     doc
       .fillColor('#3f51b5')
       .fontSize(12)
-      .text(`Código: ${data.confirmationCode}`, doc.x + 10, doc.y + 10 - 30 + 8);
+      .text(`Código: ${data.confirmationCode}`, boxX + 12, boxY + 9, {
+        width: boxWidth - 24,
+        lineBreak: false,
+      });
 
-    doc.moveDown(2.5);
+    // Reposicionar el cursor debajo del recuadro para el resto del contenido
+    doc.x = boxX;
+    doc.y = boxY + boxHeight + 15;
 
     // ── Datos del cliente ──
     doc.fillColor('#000').fontSize(13).text('Datos del cliente', { underline: true });
