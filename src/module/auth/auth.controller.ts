@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, ForbiddenException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
 
@@ -13,11 +13,29 @@ export class AuthController {
 
   @Post('init-admin')
   async initAdmin() {
-    return this.authService.createAdminUser();
+    if (process.env.ENABLE_BOOTSTRAP !== 'true') {
+      throw new ForbiddenException('Endpoint deshabilitado');
+    }
+
+    const password = process.env.ADMIN_INITIAL_PASSWORD;
+    if (!password) {
+      throw new ForbiddenException('ADMIN_INITIAL_PASSWORD no configurado');
+    }
+
+    return this.authService.createAdminUser(password);
   }
 
   @Post('init-super')
   async initSuper() {
-    return this.authService.createSuperUser();
+    if (process.env.ENABLE_BOOTSTRAP !== 'true') {
+      throw new ForbiddenException('Endpoint deshabilitado');
+    }
+
+    const password = process.env.SUPERUSER_INITIAL_PASSWORD;
+    if (!password) {
+      throw new ForbiddenException('SUPERUSER_INITIAL_PASSWORD no configurado');
+    }
+
+    return this.authService.createSuperUser(password);
   }
 }

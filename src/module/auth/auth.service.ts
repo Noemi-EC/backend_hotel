@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { JwtPayload } from './jwt/jwt.payload';
-import * as bcrypt from 'bcrypt';
+import { compare } from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 
@@ -15,25 +15,25 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async createAdminUser() {
+  async createAdminUser(password: string) {
     const existing = await this.userService.findOne('admin');
     if (existing) return { message: 'El usuario admin ya existe' };
 
     const admin = await this.userService.create({
       username: 'admin',
-      password: 'admin123',
+      password,
       role: 'ADMIN',
     });
     return { message: 'Usuario admin creado', admin };
   }
 
-  async createSuperUser() {
+  async createSuperUser(password: string) {
     const existing = await this.userService.findOne('superuser');
     if (existing) return { message: 'El superusuario ya existe' };
 
     const superuser = await this.userService.create({
       username: 'superuser',
-      password: 'super123',
+      password,
       role: 'SUPERUSER',
     });
     return { message: 'Superusuario creado', superuser };
@@ -56,13 +56,17 @@ export class AuthService {
       );
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = (await compare(password, user.password)) as boolean;
 
     if (!isMatch) {
       const newAttempts = (user.loginAttempts || 0) + 1;
       if (newAttempts >= MAX_ATTEMPTS) {
         const lockedUntil = new Date(Date.now() + LOCK_MINUTES * 60 * 1000);
-        await this.userService.updateLoginAttempts(user.id, newAttempts, lockedUntil);
+        await this.userService.updateLoginAttempts(
+          user.id,
+          newAttempts,
+          lockedUntil,
+        );
         throw new UnauthorizedException(
           `Demasiados intentos fallidos. Cuenta bloqueada por ${LOCK_MINUTES} minutos`,
         );
@@ -87,7 +91,11 @@ export class AuthService {
     };
 
     const token = this.jwtService.sign(payload);
-    const { password: _, loginAttempts: __, lockedUntil: ___, ...userWithoutSensitive } = user;
+    const { password, loginAttempts, lockedUntil, ...userWithoutSensitive } =
+      user;
+    void password;
+    void loginAttempts;
+    void lockedUntil;
 
     return { token, user: userWithoutSensitive };
   }

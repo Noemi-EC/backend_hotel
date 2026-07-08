@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { BookService } from './book.service';
 import { Book } from './entity/book.entity';
 import { Customer } from '../customer/entity/customer.entity';
@@ -51,8 +55,13 @@ const mockRoomRepository = {
 // Datos de prueba reutilizables
 // ─────────────────────────────────────────────
 const mockCustomer = { id: 1, userId: 10, name: 'Carlos', lastName: 'García' };
-const mockRoom     = { id: 5, code: '102', category: 'Suite', status: 'disponible' };
-const mockAdmin    = { id: 20, role: 'ADMIN' };
+const mockRoom = {
+  id: 5,
+  code: '102',
+  category: 'Suite',
+  status: 'disponible',
+};
+const mockAdmin = { id: 20, role: 'ADMIN' };
 
 const baseBookDto = {
   roomId: 5,
@@ -69,10 +78,13 @@ describe('BookService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BookService,
-        { provide: getRepositoryToken(Book),     useValue: mockBookRepository },
-        { provide: getRepositoryToken(Customer), useValue: mockCustomerRepository },
-        { provide: getRepositoryToken(User),     useValue: mockUserRepository },
-        { provide: getRepositoryToken(Room),     useValue: mockRoomRepository },
+        { provide: getRepositoryToken(Book), useValue: mockBookRepository },
+        {
+          provide: getRepositoryToken(Customer),
+          useValue: mockCustomerRepository,
+        },
+        { provide: getRepositoryToken(User), useValue: mockUserRepository },
+        { provide: getRepositoryToken(Room), useValue: mockRoomRepository },
       ],
     }).compile();
 
@@ -90,7 +102,6 @@ describe('BookService', () => {
   // ═══════════════════════════════════════════
 
   describe('HU-08 — Creación de Reservas', () => {
-
     // ── Escenario 1: Crear reserva exitosamente
     it('[E1] debe crear una reserva exitosamente sin solapamiento', async () => {
       // Arrange
@@ -107,7 +118,7 @@ describe('BookService', () => {
 
       mockCustomerRepository.findOne.mockResolvedValue(mockCustomer);
       mockRoomRepository.findOne.mockResolvedValue(mockRoom);
-      mockQueryBuilder.getCount.mockResolvedValue(0);          // sin solapamiento
+      mockQueryBuilder.getCount.mockResolvedValue(0); // sin solapamiento
       (BookFactory.create as jest.Mock).mockReturnValue({ ...savedBook });
       mockBookRepository.create.mockReturnValue(savedBook);
       mockBookRepository.save.mockResolvedValue(savedBook);
@@ -116,8 +127,12 @@ describe('BookService', () => {
       const result = await service.create(baseBookDto, 10);
 
       // Assert
-      expect(mockCustomerRepository.findOne).toHaveBeenCalledWith({ where: { userId: 10 } });
-      expect(mockRoomRepository.findOne).toHaveBeenCalledWith({ where: { id: baseBookDto.roomId } });
+      expect(mockCustomerRepository.findOne).toHaveBeenCalledWith({
+        where: { userId: 10 },
+      });
+      expect(mockRoomRepository.findOne).toHaveBeenCalledWith({
+        where: { id: baseBookDto.roomId },
+      });
       expect(mockQueryBuilder.getCount).toHaveBeenCalled();
       expect(mockBookRepository.save).toHaveBeenCalled();
       expect(result.id).toBe(1);
@@ -130,12 +145,12 @@ describe('BookService', () => {
       // Arrange
       mockCustomerRepository.findOne.mockResolvedValue(mockCustomer);
       mockRoomRepository.findOne.mockResolvedValue(mockRoom);
-      mockQueryBuilder.getCount.mockResolvedValue(1);          // hay solapamiento
+      mockQueryBuilder.getCount.mockResolvedValue(1); // hay solapamiento
 
       // Act & Assert
-      await expect(service.create(baseBookDto, 10))
-        .rejects
-        .toThrow(ConflictException);
+      await expect(service.create(baseBookDto, 10)).rejects.toThrow(
+        ConflictException,
+      );
 
       expect(mockBookRepository.save).not.toHaveBeenCalled();
     });
@@ -146,9 +161,9 @@ describe('BookService', () => {
       mockCustomerRepository.findOne.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.create(baseBookDto, 99))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(service.create(baseBookDto, 99)).rejects.toThrow(
+        NotFoundException,
+      );
 
       expect(mockRoomRepository.findOne).not.toHaveBeenCalled();
     });
@@ -158,7 +173,7 @@ describe('BookService', () => {
       // Arrange
       const reservas = [
         { id: 1, customerId: 1, roomId: 5, status: 'pending', room: mockRoom },
-        { id: 2, customerId: 1, roomId: 5, status: 'booked',  room: mockRoom },
+        { id: 2, customerId: 1, roomId: 5, status: 'booked', room: mockRoom },
       ];
       mockCustomerRepository.findOne.mockResolvedValue(mockCustomer);
       mockBookRepository.find.mockResolvedValue(reservas);
@@ -167,7 +182,9 @@ describe('BookService', () => {
       const result = await service.findAllByCustomer(10);
 
       // Assert
-      expect(mockCustomerRepository.findOne).toHaveBeenCalledWith({ where: { userId: 10 } });
+      expect(mockCustomerRepository.findOne).toHaveBeenCalledWith({
+        where: { userId: 10 },
+      });
       expect(mockBookRepository.find).toHaveBeenCalledWith({
         where: { customerId: mockCustomer.id },
         relations: ['room'],
@@ -182,14 +199,13 @@ describe('BookService', () => {
   // ═══════════════════════════════════════════
 
   describe('HU-09 — Gestión de Estados de Reserva', () => {
-
     // ── Escenario 1: Cambiar reserva de Pendiente a Confirmada (check-in)
     it('[E1] ADMIN puede cambiar estado de pending a booked (check-in)', async () => {
       // Arrange
       const book = { id: 1, status: 'pending', customerId: 1, roomId: 5 };
       mockBookRepository.findOne.mockResolvedValue(book);
-      mockCustomerRepository.findOne.mockResolvedValue(null);   // no es cliente
-      mockUserRepository.findOne.mockResolvedValue(mockAdmin);   // es ADMIN
+      mockCustomerRepository.findOne.mockResolvedValue(null); // no es cliente
+      mockUserRepository.findOne.mockResolvedValue(mockAdmin); // es ADMIN
       mockBookRepository.update.mockResolvedValue(undefined);
       mockRoomRepository.update.mockResolvedValue(undefined);
 
@@ -197,8 +213,12 @@ describe('BookService', () => {
       const result = await service.changeStatus(1, 20, 'booked');
 
       // Assert
-      expect(mockBookRepository.update).toHaveBeenCalledWith(1, { status: 'booked' });
-      expect(mockRoomRepository.update).toHaveBeenCalledWith(5, { status: 'ocupada' });
+      expect(mockBookRepository.update).toHaveBeenCalledWith(1, {
+        status: 'booked',
+      });
+      expect(mockRoomRepository.update).toHaveBeenCalledWith(5, {
+        status: 'ocupada',
+      });
       expect(result.book.status).toBe('booked');
       expect(result.message).toBeDefined();
     });
@@ -217,8 +237,12 @@ describe('BookService', () => {
       const result = await service.changeStatus(2, 20, 'cancelled');
 
       // Assert
-      expect(mockBookRepository.update).toHaveBeenCalledWith(2, { status: 'cancelled' });
-      expect(mockRoomRepository.update).toHaveBeenCalledWith(5, { status: 'disponible' });
+      expect(mockBookRepository.update).toHaveBeenCalledWith(2, {
+        status: 'cancelled',
+      });
+      expect(mockRoomRepository.update).toHaveBeenCalledWith(5, {
+        status: 'disponible',
+      });
       expect(result.book.status).toBe('cancelled');
     });
 
@@ -232,9 +256,9 @@ describe('BookService', () => {
       mockUserRepository.findOne.mockResolvedValue(mockAdmin);
 
       // Act & Assert
-      await expect(service.changeStatus(3, 20, 'pending'))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(service.changeStatus(3, 20, 'pending')).rejects.toThrow(
+        BadRequestException,
+      );
 
       expect(mockBookRepository.update).not.toHaveBeenCalled();
       expect(mockRoomRepository.update).not.toHaveBeenCalled();
@@ -246,7 +270,7 @@ describe('BookService', () => {
       const book = { id: 4, status: 'pending', customerId: 1, roomId: 5 };
       mockBookRepository.findOne.mockResolvedValue(book);
       mockCustomerRepository.findOne.mockResolvedValue(mockCustomer); // sí es cliente
-      mockUserRepository.findOne.mockResolvedValue(null);             // no es admin
+      mockUserRepository.findOne.mockResolvedValue(null); // no es admin
       mockBookRepository.update.mockResolvedValue(undefined);
       mockRoomRepository.update.mockResolvedValue(undefined);
 
@@ -254,8 +278,12 @@ describe('BookService', () => {
       const result = await service.changeStatus(4, 10, 'cancelled');
 
       // Assert
-      expect(mockBookRepository.update).toHaveBeenCalledWith(4, { status: 'cancelled' });
-      expect(mockRoomRepository.update).toHaveBeenCalledWith(5, { status: 'disponible' });
+      expect(mockBookRepository.update).toHaveBeenCalledWith(4, {
+        status: 'cancelled',
+      });
+      expect(mockRoomRepository.update).toHaveBeenCalledWith(5, {
+        status: 'disponible',
+      });
       expect(result.book.status).toBe('cancelled');
     });
   });
@@ -265,10 +293,14 @@ describe('BookService', () => {
   // ═══════════════════════════════════════════
 
   describe('getBookingStatus', () => {
-
     it('debe retornar estado actual y transiciones disponibles para una reserva pending', async () => {
       // Arrange
-      mockBookRepository.findOne.mockResolvedValue({ id: 1, status: 'pending', roomId: 5, customerId: 1 });
+      mockBookRepository.findOne.mockResolvedValue({
+        id: 1,
+        status: 'pending',
+        roomId: 5,
+        customerId: 1,
+      });
 
       // Act
       const result = await service.getBookingStatus(1);
@@ -283,7 +315,9 @@ describe('BookService', () => {
       mockBookRepository.findOne.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(service.getBookingStatus(999)).rejects.toThrow(NotFoundException);
+      await expect(service.getBookingStatus(999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

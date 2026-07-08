@@ -1,33 +1,45 @@
-import { IsNotEmpty, IsString, IsInt } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsInt,
+  MinLength,
+  Matches,
+} from 'class-validator';
 
 export class CreateCustomerDto {
   @IsString()
   @IsNotEmpty()
-  username: string;
+  @Matches(/^[a-zA-Z0-9._-]{3,30}$/)
+  username!: string;
 
   @IsString()
   @IsNotEmpty()
-  password: string;
+  @MinLength(6)
+  password!: string;
 
   @IsString()
   @IsNotEmpty()
-  name: string;
+  @Matches(/^[a-zA-ZÁÉÍÓÚáéíóúÑñ ]{2,50}$/)
+  name!: string;
 
   @IsString()
   @IsNotEmpty()
-  lastName: string;
+  @Matches(/^[a-zA-ZÁÉÍÓÚáéíóúÑñ ]{2,50}$/)
+  lastName!: string;
 
   @IsString()
   @IsNotEmpty()
-  dni: string;
+  @Matches(/^\d{8}$/)
+  dni!: string;
 
-  @IsString()
+  @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsInt()
-  companyId: number;
+  companyId!: number;
 
   @IsInt()
-  hotelId: number;
+  hotelId!: number;
 }

@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Room } from './entity/room.entity';
@@ -18,7 +22,9 @@ export class RoomService {
       where: { code: createRoomDto.code, hotelId: createRoomDto.hotelId },
     });
     if (existing) {
-      throw new ConflictException('La habitación ya existe con el mismo código en este hotel');
+      throw new ConflictException(
+        'La habitación ya existe con el mismo código en este hotel',
+      );
     }
     const room = this.roomRepository.create(createRoomDto);
     return this.roomRepository.save(room);
@@ -37,7 +43,10 @@ export class RoomService {
         .getMany();
     }
 
-    return this.roomRepository.find({ where: { hotelId }, relations: ['hotel'] });
+    return this.roomRepository.find({
+      where: { hotelId },
+      relations: ['hotel'],
+    });
   }
 
   async getAvailableRooms(
@@ -50,7 +59,9 @@ export class RoomService {
       .createQueryBuilder('book')
       .innerJoin('book.room', 'room')
       .where('room.hotelId = :hotelId', { hotelId })
-      .andWhere('book.status IN (:...statuses)', { statuses: ['pending', 'booked'] })
+      .andWhere('book.status IN (:...statuses)', {
+        statuses: ['pending', 'booked'],
+      })
       .andWhere('book.checkInDate < :checkOut', { checkOut })
       .andWhere('book.checkOutDate > :checkIn', { checkIn })
       .select('book.roomId')
@@ -68,10 +79,14 @@ export class RoomService {
     }
 
     if (filters?.category) {
-      query.andWhere('room.category = :category', { category: filters.category });
+      query.andWhere('room.category = :category', {
+        category: filters.category,
+      });
     }
     if (filters?.minCapacity) {
-      query.andWhere('room.capacity >= :minCapacity', { minCapacity: filters.minCapacity });
+      query.andWhere('room.capacity >= :minCapacity', {
+        minCapacity: filters.minCapacity,
+      });
     }
     if (filters?.maxPrice) {
       query.andWhere('room.price <= :maxPrice', { maxPrice: filters.maxPrice });

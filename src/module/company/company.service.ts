@@ -1,7 +1,11 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import { hash } from 'bcrypt';
 import { Company } from './entity/company.entity';
 import { Hotel } from '../hotel/entity/hotel.entity';
 import { User } from '../user/entity/user.entity';
@@ -16,7 +20,9 @@ export class CompanyService {
   ) {}
 
   async register(dto: RegisterCompanyDto) {
-    const existing = await this.companyRepository.findOne({ where: { ruc: dto.ruc } });
+    const existing = await this.companyRepository.findOne({
+      where: { ruc: dto.ruc },
+    });
     if (existing) throw new ConflictException('El RUC ya está registrado');
 
     const wantsHotelAdmin = !!(dto.hotelAdminUsername || dto.hotelAdminPassword);
@@ -30,65 +36,94 @@ export class CompanyService {
     }
 
     return this.dataSource.transaction(async (manager) => {
-      const existingCompanyAdmin = await manager.findOne(User, { where: { username: dto.adminUsername } });
-      if (existingCompanyAdmin) throw new ConflictException('El usuario del administrador de la empresa ya existe');
+      try {
+        const existingCompanyAdmin = await manager.findOne(User, { where: { username: dto.adminUsername } });
+        if (existingCompanyAdmin) throw new ConflictException('El usuario del administrador de la empresa ya existe');
 
-      if (wantsHotelAdmin) {
-        const existingHotelAdmin = await manager.findOne(User, { where: { username: dto.hotelAdminUsername } });
-        if (existingHotelAdmin) throw new ConflictException('El usuario del administrador del hotel ya existe');
-      }
+        if (wantsHotelAdmin) {
+          const existingHotelAdmin = await manager.findOne(User, { where: { username: dto.hotelAdminUsername } });
+          if (existingHotelAdmin) throw new ConflictException('El usuario del administrador del hotel ya existe');
+        }
 
-      const company = await manager.save(Company, {
-        name: dto.companyName,
-        ruc: dto.ruc,
-        address: dto.companyAddress,
-        phone: dto.companyPhone,
-        email: dto.companyEmail,
-      });
-
-      const hotel = await manager.save(Hotel, {
-        companyId: company.id,
-        name: dto.hotelName,
-        address: dto.hotelAddress,
-        phone: dto.hotelPhone,
-        email: dto.hotelEmail,
-      });
-
-      const hashedCompanyAdminPassword = await bcrypt.hash(dto.adminPassword, 10);
-      const companyAdmin = await manager.save(User, {
-        username: dto.adminUsername,
-        password: hashedCompanyAdminPassword,
-        role: 'COMPANY_ADMIN',
-        companyId: company.id,
-      });
-
-      let hotelAdmin: User | null = null;
-      if (wantsHotelAdmin) {
-        const hashedHotelAdminPassword = await bcrypt.hash(dto.hotelAdminPassword as string, 10);
-        hotelAdmin = await manager.save(User, {
-          username: dto.hotelAdminUsername,
-          password: hashedHotelAdminPassword,
-          role: 'ADMIN',
-          companyId: company.id,
-          hotelId: hotel.id,
+        const company = manager.create(Company, {
+          name: dto.companyName,
+          ruc: dto.ruc,
+          address: dto.companyAddress,
+          phone: dto.companyPhone,
+          email: dto.companyEmail,
         });
-      }
+        const savedCompany = await manager.save(company);
 
-      return {
-        message: 'Empresa y hotel registrados exitosamente',
-        company,
-        hotel,
-        companyAdmin: { id: companyAdmin.id, username: companyAdmin.username, role: companyAdmin.role },
-        hotelAdmin: hotelAdmin
-          ? { id: hotelAdmin.id, username: hotelAdmin.username, role: hotelAdmin.role }
-          : null,
-      };
+        const hotel = manager.create(Hotel, {
+          companyId: savedCompany.id,
+          name: dto.hotelName,
+          address: dto.hotelAddress,
+          phone: dto.hotelPhone,
+          email: dto.hotelEmail,
+        });
+        const savedHotel = await manager.save(hotel);
+
+        // Administrador de la empresa (COMPANY_ADMIN) — obligatorio, sin hotel asignado
+        const hashedCompanyAdminPassword = String(await hash(dto.adminPassword, 10));
+        const companyAdmin = manager.create(User, {
+          username: dto.adminUsername,
+          password: hashedCompanyAdminPassword,
+          role: 'COMPANY_ADMIN',
+          companyId: savedCompany.id,
+        });
+        const savedCompanyAdmin = await manager.save(companyAdmin);
+
+        // Administrador del hotel (ADMIN) — opcional, credenciales independientes
+        let savedHotelAdmin: User | null = null;
+        if (wantsHotelAdmin) {
+          const hashedHotelAdminPassword = String(await hash(dto.hotelAdminPassword as string, 10));
+          const hotelAdmin = manager.create(User, {
+            username: dto.hotelAdminUsername,
+            password: hashedHotelAdminPassword,
+            role: 'ADMIN',
+            companyId: savedCompany.id,
+            hotelId: savedHotel.id,
+          });
+          savedHotelAdmin = await manager.save(hotelAdmin);
+        }
+
+        return {
+          message: 'Empresa y hotel registrados exitosamente',
+          company: savedCompany,
+          hotel: savedHotel,
+          companyAdmin: {
+            id: savedCompanyAdmin.id,
+            username: savedCompanyAdmin.username,
+            role: savedCompanyAdmin.role,
+          },
+          hotelAdmin: savedHotelAdmin
+            ? {
+                id: savedHotelAdmin.id,
+                username: savedHotelAdmin.username,
+                role: savedHotelAdmin.role,
+              }
+            : null,
+        };
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error en transacción de registro:', error.message);
+          throw error;
+        }
+
+        console.error(
+          'Error en transacción de registro:',
+          'Error desconocido en la transacción',
+        );
+        throw new Error('Error desconocido en la transacción');
+      }
     });
   }
 
   async create(dto: CreateCompanyDto): Promise<Company> {
     if (dto.ruc) {
-      const existing = await this.companyRepository.findOne({ where: { ruc: dto.ruc } });
+      const existing = await this.companyRepository.findOne({
+        where: { ruc: dto.ruc },
+      });
       if (existing) throw new ConflictException('El RUC ya está registrado');
     }
     const company = this.companyRepository.create(dto);

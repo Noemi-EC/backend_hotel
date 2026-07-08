@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Hotel } from './entity/hotel.entity';
@@ -14,19 +18,19 @@ export class HotelService {
     private dataSource: DataSource,
   ) {}
 
-  async create(dto: CreateHotelDto): Promise<Hotel | { hotel: Hotel; admin: { id: number; username: string; role: string } }> {
-    const {
-      username,
-      password,
-      adminUsername,
-      adminPassword,
-      ...hotelData
-    } = dto as CreateHotelDto & {
-      username?: string;
-      password?: string;
-      adminUsername?: string;
-      adminPassword?: string;
-    };
+  async create(
+    dto: CreateHotelDto,
+  ): Promise<
+    | Hotel
+    | { hotel: Hotel; admin: { id: number; username: string; role: string } }
+  > {
+    const { username, password, adminUsername, adminPassword, ...hotelData } =
+      dto as CreateHotelDto & {
+        username?: string;
+        password?: string;
+        adminUsername?: string;
+        adminPassword?: string;
+      };
 
     return this.dataSource.transaction(async (manager) => {
       const hotel = await manager.save(Hotel, hotelData);
@@ -35,10 +39,14 @@ export class HotelService {
 
       if (newAdminUsername || newAdminPassword) {
         if (!newAdminUsername || !newAdminPassword) {
-          throw new ConflictException('Debe proporcionar usuario y contraseña de administrador');
+          throw new ConflictException(
+            'Debe proporcionar usuario y contraseña de administrador',
+          );
         }
 
-        const existingUser = await manager.findOne(User, { where: { username: newAdminUsername } });
+        const existingUser = await manager.findOne(User, {
+          where: { username: newAdminUsername },
+        });
         if (existingUser) {
           throw new ConflictException('El usuario admin ya existe');
         }
@@ -52,7 +60,10 @@ export class HotelService {
         });
 
         const admin = await manager.save(User, userData);
-        return { hotel, admin: { id: admin.id, username: admin.username, role: admin.role } };
+        return {
+          hotel,
+          admin: { id: admin.id, username: admin.username, role: admin.role },
+        };
       }
 
       return hotel;
@@ -64,7 +75,10 @@ export class HotelService {
   }
 
   async findOne(id: number): Promise<Hotel> {
-    const hotel = await this.hotelRepository.findOne({ where: { id }, relations: ['company'] });
+    const hotel = await this.hotelRepository.findOne({
+      where: { id },
+      relations: ['company'],
+    });
     if (!hotel) throw new NotFoundException('Hotel no encontrado');
     return hotel;
   }

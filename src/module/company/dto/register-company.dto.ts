@@ -1,8 +1,17 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  MinLength,
+} from 'class-validator';
 
 export class RegisterCompanyDto {
   @IsString() @IsNotEmpty() companyName: string;
-  @IsString() @Length(11, 11, { message: 'El RUC debe tener 11 dígitos' }) ruc: string;
+  @IsString()
+  @Length(11, 11, { message: 'El RUC debe tener 11 dígitos' })
+  ruc: string;
   @IsString() @IsNotEmpty() companyAddress: string;
   @IsString() @IsOptional() companyPhone?: string;
   @IsEmail() @IsOptional() companyEmail?: string;

@@ -10,7 +10,11 @@ import { UserModule } from '../user/user.module';
 import { HotelModule } from '../hotel/hotel.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Customer, Room, Book, Payment]), UserModule, HotelModule],
+  imports: [
+    TypeOrmModule.forFeature([Customer, Room, Book, Payment]),
+    UserModule,
+    HotelModule,
+  ],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

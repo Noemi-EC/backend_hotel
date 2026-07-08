@@ -15,15 +15,17 @@ export class PaymentController {
     private readonly userService: UserService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('pay')
-  async create(@Body() dto: CreatePaymentDto) {
-    return this.paymentService.createPayment(dto);
+  async create(@Body() dto: CreatePaymentDto, @Req() req: AuthRequest) {
+    return this.paymentService.createPayment(dto, req.user.userId);
   }
 
   // Alias esperado por el frontend
+  @UseGuards(JwtAuthGuard)
   @Post('create')
-  async createAlias(@Body() dto: CreatePaymentDto) {
-    return this.paymentService.createPayment(dto);
+  async createAlias(@Body() dto: CreatePaymentDto, @Req() req: AuthRequest) {
+    return this.paymentService.createPayment(dto, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -31,14 +33,18 @@ export class PaymentController {
   @Get('all')
   async findAll(@Req() req: AuthRequest) {
     if (req.user.role === 'ADMIN') {
-      const hotelId = (await this.userService.findById(req.user.userId))?.hotelId;
-      if (!hotelId) throw new NotFoundException('Administrador sin hotel asignado');
+      const hotelId = (await this.userService.findById(req.user.userId))
+        ?.hotelId;
+      if (!hotelId)
+        throw new NotFoundException('Administrador sin hotel asignado');
       return this.paymentService.findAll(hotelId);
     }
 
     if (req.user.role === 'COMPANY_ADMIN') {
-      const companyId = (await this.userService.findById(req.user.userId))?.companyId;
-      if (!companyId) throw new NotFoundException('Administrador de empresa sin companyId');
+      const companyId = (await this.userService.findById(req.user.userId))
+        ?.companyId;
+      if (!companyId)
+        throw new NotFoundException('Administrador de empresa sin companyId');
       return this.paymentService.findAll(undefined, companyId);
     }
 
@@ -47,7 +53,7 @@ export class PaymentController {
 
   @UseGuards(JwtAuthGuard)
   @Get('my-payments')
-  async findByCustomer(@Req() req) {
+  async findByCustomer(@Req() req: AuthRequest) {
     return this.paymentService.findByCustomer(req.user.userId);
   }
 
