@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { existsSync } from 'fs';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './module/auth/auth.module';
@@ -17,11 +16,7 @@ import { HotelModule } from './module/hotel/hotel.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath:
-        process.env.NODE_ENV === 'production'
-          ? '.prod.env'
-          : existsSync('.env.local')
-            ? '.env.local'
-            : '.env',
+        process.env.NODE_ENV === 'production' ? '.prod.env' : '.env.local',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
