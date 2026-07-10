@@ -39,7 +39,10 @@ export class HotelController {
   }
 
   // Si el usuario es COMPANY_ADMIN, valida que el hotel pertenezca a su empresa.
-  private async assertHotelOwnership(req: AuthRequest, hotelId: number): Promise<void> {
+  private async assertHotelOwnership(
+    req: AuthRequest,
+    hotelId: number,
+  ): Promise<void> {
     if (req.user.role !== 'COMPANY_ADMIN') return;
     const companyId = await this.getCompanyIdOfUser(req.user.userId);
     const hotel = await this.hotelService.findOne(hotelId);
@@ -94,7 +97,11 @@ export class HotelController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPERUSER', 'COMPANY_ADMIN')
   @Put('update/:id')
-  async update(@Req() req: AuthRequest, @Param('id', ParseIntPipe) id: number, @Body() dto: CreateHotelDto) {
+  async update(
+    @Req() req: AuthRequest,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateHotelDto,
+  ) {
     await this.assertHotelOwnership(req, id);
     return this.hotelService.update(id, dto);
   }

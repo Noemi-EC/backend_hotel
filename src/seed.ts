@@ -84,7 +84,7 @@ async function run() {
     email: 'centro@hotelcielo.pe',
     active: true,
   });
-  const adminCentro = await userRepo.save({
+  await userRepo.save({
     username: 'admin_centro',
     password: await hash('admin123'),
     role: 'ADMIN',
@@ -172,22 +172,92 @@ async function run() {
   // ─────────────────────────────────────────────
   console.log('🛏️  Creando habitaciones...');
   const [c101, , cSuite, cDeluxe] = await roomRepo.save([
-    { hotelId: cieloCentro.id, code: '101', status: 'disponible', capacity: 2, price: 150, category: 'standard' },
-    { hotelId: cieloCentro.id, code: '102', status: 'disponible', capacity: 2, price: 150, category: 'standard' },
-    { hotelId: cieloCentro.id, code: '201', status: 'disponible', capacity: 3, price: 300, category: 'suite' },
-    { hotelId: cieloCentro.id, code: '202', status: 'disponible', capacity: 4, price: 450, category: 'deluxe' },
+    {
+      hotelId: cieloCentro.id,
+      code: '101',
+      status: 'disponible',
+      capacity: 2,
+      price: 150,
+      category: 'standard',
+    },
+    {
+      hotelId: cieloCentro.id,
+      code: '102',
+      status: 'disponible',
+      capacity: 2,
+      price: 150,
+      category: 'standard',
+    },
+    {
+      hotelId: cieloCentro.id,
+      code: '201',
+      status: 'disponible',
+      capacity: 3,
+      price: 300,
+      category: 'suite',
+    },
+    {
+      hotelId: cieloCentro.id,
+      code: '202',
+      status: 'disponible',
+      capacity: 4,
+      price: 450,
+      category: 'deluxe',
+    },
   ]);
 
   await roomRepo.save([
-    { hotelId: cieloPlaya.id, code: '101', status: 'disponible', capacity: 2, price: 180, category: 'standard' },
-    { hotelId: cieloPlaya.id, code: '301', status: 'disponible', capacity: 3, price: 350, category: 'suite' },
-    { hotelId: cieloPlaya.id, code: '401', status: 'disponible', capacity: 5, price: 600, category: 'duplex' },
+    {
+      hotelId: cieloPlaya.id,
+      code: '101',
+      status: 'disponible',
+      capacity: 2,
+      price: 180,
+      category: 'standard',
+    },
+    {
+      hotelId: cieloPlaya.id,
+      code: '301',
+      status: 'disponible',
+      capacity: 3,
+      price: 350,
+      category: 'suite',
+    },
+    {
+      hotelId: cieloPlaya.id,
+      code: '401',
+      status: 'disponible',
+      capacity: 5,
+      price: 600,
+      category: 'duplex',
+    },
   ]);
 
   const [aCusco205] = await roomRepo.save([
-    { hotelId: andinoCusco.id, code: '205', status: 'disponible', capacity: 3, price: 400, category: 'suite' },
-    { hotelId: andinoCusco.id, code: '101', status: 'disponible', capacity: 2, price: 200, category: 'standard' },
-    { hotelId: andinoCusco.id, code: '102', status: 'disponible', capacity: 2, price: 200, category: 'standard' },
+    {
+      hotelId: andinoCusco.id,
+      code: '205',
+      status: 'disponible',
+      capacity: 3,
+      price: 400,
+      category: 'suite',
+    },
+    {
+      hotelId: andinoCusco.id,
+      code: '101',
+      status: 'disponible',
+      capacity: 2,
+      price: 200,
+      category: 'standard',
+    },
+    {
+      hotelId: andinoCusco.id,
+      code: '102',
+      status: 'disponible',
+      capacity: 2,
+      price: 200,
+      category: 'standard',
+    },
   ]);
 
   // ─────────────────────────────────────────────
@@ -214,9 +284,33 @@ async function run() {
     return customerRepo.save({ userId: user.id, name, lastName, dni, email });
   };
 
-  const juan = await makeCustomer('cliente1', 'pass1234', 'Juan', 'Pérez', '12345678', 'juan@email.com', cieloCentro);
-  const maria = await makeCustomer('cliente2', 'pass1234', 'María', 'López', '87654321', 'maria@email.com', cieloCentro);
-  const carlos = await makeCustomer('cliente3', 'pass1234', 'Carlos', 'Ruiz', '11223344', 'carlos@email.com', andinoCusco);
+  const juan = await makeCustomer(
+    'cliente1',
+    'pass1234',
+    'Juan',
+    'Pérez',
+    '12345678',
+    'juan@email.com',
+    cieloCentro,
+  );
+  const maria = await makeCustomer(
+    'cliente2',
+    'pass1234',
+    'María',
+    'López',
+    '87654321',
+    'maria@email.com',
+    cieloCentro,
+  );
+  const carlos = await makeCustomer(
+    'cliente3',
+    'pass1234',
+    'Carlos',
+    'Ruiz',
+    '11223344',
+    'carlos@email.com',
+    andinoCusco,
+  );
 
   // ─────────────────────────────────────────────
   // RESERVAS + PAGOS
@@ -280,12 +374,22 @@ async function run() {
   console.log('\n✅ Datos demo generados correctamente.\n');
   console.log('── Credenciales ──────────────────────────────');
   console.log('SUPERUSER        superuser       / super123');
-  console.log('COMPANY_ADMIN    company_cielo   / comp123   (Cadena Hotelera Cielo)');
+  console.log(
+    'COMPANY_ADMIN    company_cielo   / comp123   (Cadena Hotelera Cielo)',
+  );
   console.log('COMPANY_ADMIN    company_andino  / comp123   (Grupo Andino)');
-  console.log('ADMIN            admin_centro    / admin123  (Hotel Cielo Centro)');
-  console.log('ADMIN            admin_playa     / admin123  (Hotel Cielo Playa)');
-  console.log('ADMIN            admin_cusco     / admin123  (Andino Cusco Plaza)');
-  console.log('ADMIN            admin_arequipa  / admin123  (INACTIVO — no puede entrar)');
+  console.log(
+    'ADMIN            admin_centro    / admin123  (Hotel Cielo Centro)',
+  );
+  console.log(
+    'ADMIN            admin_playa     / admin123  (Hotel Cielo Playa)',
+  );
+  console.log(
+    'ADMIN            admin_cusco     / admin123  (Andino Cusco Plaza)',
+  );
+  console.log(
+    'ADMIN            admin_arequipa  / admin123  (INACTIVO — no puede entrar)',
+  );
   console.log('CUSTOMER         cliente1        / pass1234  (Juan Pérez)');
   console.log('CUSTOMER         cliente2        / pass1234  (María López)');
   console.log('CUSTOMER         cliente3        / pass1234  (Carlos Ruiz)');

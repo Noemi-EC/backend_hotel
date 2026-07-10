@@ -44,7 +44,9 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Usuario no encontrado');
 
     if (user.active === false) {
-      throw new UnauthorizedException('Usuario desactivado. Contacte al administrador');
+      throw new UnauthorizedException(
+        'Usuario desactivado. Contacte al administrador',
+      );
     }
 
     if (user.lockedUntil && new Date() < new Date(user.lockedUntil)) {
@@ -56,7 +58,7 @@ export class AuthService {
       );
     }
 
-    const isMatch = (await compare(password, user.password)) as boolean;
+    const isMatch = await compare(password, user.password);
 
     if (!isMatch) {
       const newAttempts = (user.loginAttempts || 0) + 1;

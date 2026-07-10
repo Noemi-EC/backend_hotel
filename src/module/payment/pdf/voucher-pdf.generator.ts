@@ -22,7 +22,10 @@ function formatDate(date: string | Date): string {
   });
 }
 
-function nightsBetween(checkIn: string | Date, checkOut: string | Date): number {
+function nightsBetween(
+  checkIn: string | Date,
+  checkOut: string | Date,
+): number {
   const diff = new Date(checkOut).getTime() - new Date(checkIn).getTime();
   return Math.max(1, Math.round(diff / (1000 * 60 * 60 * 24)));
 }
@@ -32,7 +35,7 @@ export function generateVoucherPdf(data: VoucherPdfData): Promise<Buffer> {
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
     const chunks: Buffer[] = [];
 
-    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('data', (chunk: unknown) => chunks.push(chunk as Buffer));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
@@ -59,7 +62,9 @@ export function generateVoucherPdf(data: VoucherPdfData): Promise<Buffer> {
     const boxWidth = 260;
     const boxHeight = 30;
 
-    doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 4).fillAndStroke('#eef0fc', '#3f51b5');
+    doc
+      .roundedRect(boxX, boxY, boxWidth, boxHeight, 4)
+      .fillAndStroke('#eef0fc', '#3f51b5');
 
     doc
       .fillColor('#3f51b5')
@@ -74,7 +79,10 @@ export function generateVoucherPdf(data: VoucherPdfData): Promise<Buffer> {
     doc.y = boxY + boxHeight + 15;
 
     // ── Datos del cliente ──
-    doc.fillColor('#000').fontSize(13).text('Datos del cliente', { underline: true });
+    doc
+      .fillColor('#000')
+      .fontSize(13)
+      .text('Datos del cliente', { underline: true });
     doc.moveDown(0.4);
     doc
       .fontSize(10)
@@ -86,7 +94,10 @@ export function generateVoucherPdf(data: VoucherPdfData): Promise<Buffer> {
     doc.moveDown(1.2);
 
     // ── Datos de la reserva ──
-    doc.fillColor('#000').fontSize(13).text('Detalle de la reserva', { underline: true });
+    doc
+      .fillColor('#000')
+      .fontSize(13)
+      .text('Detalle de la reserva', { underline: true });
     doc.moveDown(0.4);
     doc
       .fontSize(10)
@@ -100,7 +111,10 @@ export function generateVoucherPdf(data: VoucherPdfData): Promise<Buffer> {
     doc.moveDown(1.2);
 
     // ── Datos del pago ──
-    doc.fillColor('#000').fontSize(13).text('Detalle del pago', { underline: true });
+    doc
+      .fillColor('#000')
+      .fontSize(13)
+      .text('Detalle del pago', { underline: true });
     doc.moveDown(0.4);
     doc
       .fontSize(10)
@@ -114,7 +128,9 @@ export function generateVoucherPdf(data: VoucherPdfData): Promise<Buffer> {
     doc
       .fontSize(14)
       .fillColor('#3f51b5')
-      .text(`Total pagado: S/ ${Number(data.payment.amount).toFixed(2)}`, { align: 'right' });
+      .text(`Total pagado: S/ ${Number(data.payment.amount).toFixed(2)}`, {
+        align: 'right',
+      });
 
     doc.moveDown(2);
 
@@ -122,9 +138,12 @@ export function generateVoucherPdf(data: VoucherPdfData): Promise<Buffer> {
     doc
       .fontSize(9)
       .fillColor('#999')
-      .text('Este comprobante es una constancia de pago generada automáticamente.', {
-        align: 'center',
-      })
+      .text(
+        'Este comprobante es una constancia de pago generada automáticamente.',
+        {
+          align: 'center',
+        },
+      )
       .text(`Generado el ${formatDate(new Date())}`, { align: 'center' });
 
     doc.end();

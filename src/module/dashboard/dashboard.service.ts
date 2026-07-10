@@ -165,7 +165,9 @@ export class DashboardService {
     companyId?: number,
   ): Promise<{ occupancyRate: number }> {
     let totalRooms: number;
-    const bookingsQuery = this.bookRepository.createQueryBuilder('book').innerJoin('book.room', 'room');
+    const bookingsQuery = this.bookRepository
+      .createQueryBuilder('book')
+      .innerJoin('book.room', 'room');
 
     if (hotelId) {
       totalRooms = await this.roomRepository.count({ where: { hotelId } });
@@ -176,7 +178,9 @@ export class DashboardService {
         .innerJoin('room.hotel', 'hotel')
         .where('hotel.companyId = :companyId', { companyId })
         .getCount();
-      bookingsQuery.innerJoin('room.hotel', 'hotel').where('hotel.companyId = :companyId', { companyId });
+      bookingsQuery
+        .innerJoin('room.hotel', 'hotel')
+        .where('hotel.companyId = :companyId', { companyId });
     } else {
       totalRooms = await this.roomRepository.count();
     }
@@ -189,7 +193,9 @@ export class DashboardService {
     const totalAvailable = totalRooms * totalDays;
 
     const bookings = await bookingsQuery
-      .andWhere('book.status IN (:...statuses)', { statuses: ['pending', 'booked'] })
+      .andWhere('book.status IN (:...statuses)', {
+        statuses: ['pending', 'booked'],
+      })
       .andWhere('book.checkInDate < :endDate', { endDate })
       .andWhere('book.checkOutDate > :startDate', { startDate })
       .getMany();

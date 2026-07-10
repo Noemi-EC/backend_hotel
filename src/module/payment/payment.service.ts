@@ -139,14 +139,22 @@ export class PaymentService {
         address: book.room?.hotel?.address,
         phone: book.room?.hotel?.phone,
       },
-      room: { code: book.room?.code, category: book.room?.category, price: book.room?.price },
+      room: {
+        code: book.room?.code,
+        category: book.room?.category,
+        price: book.room?.price,
+      },
       customer: {
         name: book.customer?.name,
         lastName: book.customer?.lastName,
         email: book.customer?.email,
         dni: book.customer?.dni,
       },
-      payment: { amount: payment.amount, cardLastDigits: payment.cardLastDigits, date: payment.createdAt },
+      payment: {
+        amount: payment.amount,
+        cardLastDigits: payment.cardLastDigits,
+        date: payment.createdAt,
+      },
     };
   }
 

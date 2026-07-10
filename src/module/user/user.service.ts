@@ -1,4 +1,9 @@
-import { Injectable, ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -65,8 +70,13 @@ export class UserService {
   // ── Gestión de administradores de hotel (para COMPANY_ADMIN / SUPERUSER) ──
 
   // Valida que un hotel pertenezca a la empresa indicada (cuando companyId está definido).
-  private async assertHotelInCompany(hotelId: number, companyId?: number): Promise<Hotel> {
-    const hotel = await this.hotelRepository.findOne({ where: { id: hotelId } });
+  private async assertHotelInCompany(
+    hotelId: number,
+    companyId?: number,
+  ): Promise<Hotel> {
+    const hotel = await this.hotelRepository.findOne({
+      where: { id: hotelId },
+    });
     if (!hotel) throw new NotFoundException('Hotel no encontrado');
     if (companyId && hotel.companyId !== companyId) {
       throw new ForbiddenException('El hotel no pertenece a su empresa');
@@ -75,11 +85,17 @@ export class UserService {
   }
 
   // Carga un usuario ADMIN y valida que pertenezca a la empresa (cuando companyId está definido).
-  private async loadAdminInCompany(id: number, companyId?: number): Promise<User> {
+  private async loadAdminInCompany(
+    id: number,
+    companyId?: number,
+  ): Promise<User> {
     const admin = await this.userRepository.findOne({ where: { id } });
-    if (!admin || admin.role !== 'ADMIN') throw new NotFoundException('Administrador no encontrado');
+    if (!admin || admin.role !== 'ADMIN')
+      throw new NotFoundException('Administrador no encontrado');
     if (companyId && admin.companyId !== companyId) {
-      throw new ForbiddenException('El administrador no pertenece a su empresa');
+      throw new ForbiddenException(
+        'El administrador no pertenece a su empresa',
+      );
     }
     return admin;
   }
@@ -95,10 +111,14 @@ export class UserService {
   async createAdmin(dto: CreateAdminDto, companyId?: number): Promise<User> {
     await this.assertHotelInCompany(dto.hotelId, companyId);
 
-    const existing = await this.userRepository.findOne({ where: { username: dto.username } });
+    const existing = await this.userRepository.findOne({
+      where: { username: dto.username },
+    });
     if (existing) throw new ConflictException('El usuario ya existe');
 
-    const hotel = await this.hotelRepository.findOne({ where: { id: dto.hotelId } });
+    const hotel = await this.hotelRepository.findOne({
+      where: { id: dto.hotelId },
+    });
     const userData = await UserFactory.create({
       username: dto.username,
       password: dto.password,
@@ -111,11 +131,17 @@ export class UserService {
     return this.sanitize(saved);
   }
 
-  async updateAdmin(id: number, dto: UpdateAdminDto, companyId?: number): Promise<User> {
+  async updateAdmin(
+    id: number,
+    dto: UpdateAdminDto,
+    companyId?: number,
+  ): Promise<User> {
     const admin = await this.loadAdminInCompany(id, companyId);
 
     if (dto.username && dto.username !== admin.username) {
-      const existing = await this.userRepository.findOne({ where: { username: dto.username } });
+      const existing = await this.userRepository.findOne({
+        where: { username: dto.username },
+      });
       if (existing) throw new ConflictException('El usuario ya existe');
       admin.username = dto.username;
     }
@@ -131,21 +157,31 @@ export class UserService {
     return this.sanitize(saved);
   }
 
-  async setAdminActive(id: number, active: boolean, companyId?: number): Promise<User> {
+  async setAdminActive(
+    id: number,
+    active: boolean,
+    companyId?: number,
+  ): Promise<User> {
     const admin = await this.loadAdminInCompany(id, companyId);
     admin.active = active;
     const saved = await this.userRepository.save(admin);
     return this.sanitize(saved);
   }
 
-  async removeAdmin(id: number, companyId?: number): Promise<{ message: string }> {
+  async removeAdmin(
+    id: number,
+    companyId?: number,
+  ): Promise<{ message: string }> {
     await this.loadAdminInCompany(id, companyId);
     await this.userRepository.delete(id);
     return { message: 'Administrador eliminado correctamente' };
   }
 
   private sanitize(user: User): User {
-    const { password: _pw, loginAttempts: _la, lockedUntil: _lu, ...rest } = user;
-    return rest as User;
+    const copy = { ...user };
+    delete (copy as Partial<User>).password;
+    delete (copy as Partial<User>).loginAttempts;
+    delete (copy as Partial<User>).lockedUntil;
+    return copy;
   }
 }

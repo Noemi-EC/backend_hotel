@@ -25,9 +25,16 @@ export class CompanyService {
     });
     if (existing) throw new ConflictException('El RUC ya está registrado');
 
-    const wantsHotelAdmin = !!(dto.hotelAdminUsername || dto.hotelAdminPassword);
-    if (wantsHotelAdmin && !(dto.hotelAdminUsername && dto.hotelAdminPassword)) {
-      throw new ConflictException('Debe proporcionar usuario y contraseña del administrador del hotel');
+    const wantsHotelAdmin = !!(
+      dto.hotelAdminUsername || dto.hotelAdminPassword
+    );
+    if (
+      wantsHotelAdmin &&
+      !(dto.hotelAdminUsername && dto.hotelAdminPassword)
+    ) {
+      throw new ConflictException(
+        'Debe proporcionar usuario y contraseña del administrador del hotel',
+      );
     }
     if (wantsHotelAdmin && dto.hotelAdminUsername === dto.adminUsername) {
       throw new ConflictException(
@@ -37,12 +44,22 @@ export class CompanyService {
 
     return this.dataSource.transaction(async (manager) => {
       try {
-        const existingCompanyAdmin = await manager.findOne(User, { where: { username: dto.adminUsername } });
-        if (existingCompanyAdmin) throw new ConflictException('El usuario del administrador de la empresa ya existe');
+        const existingCompanyAdmin = await manager.findOne(User, {
+          where: { username: dto.adminUsername },
+        });
+        if (existingCompanyAdmin)
+          throw new ConflictException(
+            'El usuario del administrador de la empresa ya existe',
+          );
 
         if (wantsHotelAdmin) {
-          const existingHotelAdmin = await manager.findOne(User, { where: { username: dto.hotelAdminUsername } });
-          if (existingHotelAdmin) throw new ConflictException('El usuario del administrador del hotel ya existe');
+          const existingHotelAdmin = await manager.findOne(User, {
+            where: { username: dto.hotelAdminUsername },
+          });
+          if (existingHotelAdmin)
+            throw new ConflictException(
+              'El usuario del administrador del hotel ya existe',
+            );
         }
 
         const company = manager.create(Company, {
@@ -64,7 +81,9 @@ export class CompanyService {
         const savedHotel = await manager.save(hotel);
 
         // Administrador de la empresa (COMPANY_ADMIN) — obligatorio, sin hotel asignado
-        const hashedCompanyAdminPassword = String(await hash(dto.adminPassword, 10));
+        const hashedCompanyAdminPassword = String(
+          await hash(dto.adminPassword, 10),
+        );
         const companyAdmin = manager.create(User, {
           username: dto.adminUsername,
           password: hashedCompanyAdminPassword,
@@ -76,7 +95,9 @@ export class CompanyService {
         // Administrador del hotel (ADMIN) — opcional, credenciales independientes
         let savedHotelAdmin: User | null = null;
         if (wantsHotelAdmin) {
-          const hashedHotelAdminPassword = String(await hash(dto.hotelAdminPassword as string, 10));
+          const hashedHotelAdminPassword = String(
+            await hash(dto.hotelAdminPassword as string, 10),
+          );
           const hotelAdmin = manager.create(User, {
             username: dto.hotelAdminUsername,
             password: hashedHotelAdminPassword,

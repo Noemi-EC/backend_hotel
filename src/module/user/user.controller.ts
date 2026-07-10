@@ -29,10 +29,13 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   // COMPANY_ADMIN: su propia empresa (desde token). SUPERUSER: sin restricción (undefined).
-  private async resolveCompanyScope(req: AuthRequest): Promise<number | undefined> {
+  private async resolveCompanyScope(
+    req: AuthRequest,
+  ): Promise<number | undefined> {
     if (req.user.role === 'COMPANY_ADMIN') {
       const user = await this.userService.findById(req.user.userId);
-      if (!user || !user.companyId) throw new NotFoundException('Administrador de empresa sin companyId');
+      if (!user || !user.companyId)
+        throw new NotFoundException('Administrador de empresa sin companyId');
       return user.companyId;
     }
     return undefined;
@@ -42,7 +45,10 @@ export class UserController {
 
   @Roles('COMPANY_ADMIN', 'SUPERUSER')
   @Get('company-admins')
-  async findCompanyAdmins(@Req() req: AuthRequest, @Query('companyId') companyId?: string) {
+  async findCompanyAdmins(
+    @Req() req: AuthRequest,
+    @Query('companyId') companyId?: string,
+  ) {
     if (req.user.role === 'COMPANY_ADMIN') {
       const scopedCompanyId = await this.resolveCompanyScope(req);
       return this.userService.findAdminsByCompany(scopedCompanyId as number);
@@ -83,7 +89,10 @@ export class UserController {
 
   @Roles('COMPANY_ADMIN', 'SUPERUSER')
   @Delete('admin/:id')
-  async removeAdmin(@Req() req: AuthRequest, @Param('id', ParseIntPipe) id: number) {
+  async removeAdmin(
+    @Req() req: AuthRequest,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     const companyId = await this.resolveCompanyScope(req);
     return this.userService.removeAdmin(id, companyId);
   }

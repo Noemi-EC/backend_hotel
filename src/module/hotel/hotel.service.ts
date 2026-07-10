@@ -92,7 +92,13 @@ export class HotelService {
     await this.findOne(id);
     // Solo persistimos los campos propios del hotel (evita que lleguen datos de admin al update)
     const { name, address, phone, email, companyId } = dto;
-    await this.hotelRepository.update(id, { name, address, phone, email, companyId });
+    await this.hotelRepository.update(id, {
+      name,
+      address,
+      phone,
+      email,
+      companyId,
+    });
     return this.findOne(id);
   }
 

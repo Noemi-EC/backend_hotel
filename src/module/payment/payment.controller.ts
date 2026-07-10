@@ -1,4 +1,15 @@
-import { Controller, Post, Body, Get, Param, ParseIntPipe, UseGuards, Req, Res, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+  Req,
+  Res,
+  NotFoundException,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -65,7 +76,10 @@ export class PaymentController {
 
   @UseGuards(JwtAuthGuard)
   @Get('voucher/:bookId/pdf')
-  async getVoucherPdf(@Param('bookId', ParseIntPipe) bookId: number, @Res() res: Response) {
+  async getVoucherPdf(
+    @Param('bookId', ParseIntPipe) bookId: number,
+    @Res() res: Response,
+  ) {
     const pdfBuffer = await this.paymentService.getVoucherPdf(bookId);
     res.set({
       'Content-Type': 'application/pdf',

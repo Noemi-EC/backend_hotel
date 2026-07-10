@@ -32,7 +32,11 @@ import { HotelModule } from './module/hotel/hotel.module';
         synchronize: true,
         ssl:
           configService.get<string>('NODE_ENV') === 'production'
-            ? { rejectUnauthorized: false }
+            ? {
+                rejectUnauthorized:
+                  configService.get<string>('DB_SSL_REJECT_UNAUTHORIZED') ===
+                  'true',
+              }
             : false,
       }),
     }),

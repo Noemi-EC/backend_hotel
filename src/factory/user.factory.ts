@@ -4,7 +4,7 @@ import { hash } from 'bcrypt';
 
 export class UserFactory {
   static async create(createUserDto: CreateUserDto): Promise<Partial<User>> {
-    const hashedPassword = (await hash(createUserDto.password, 10)) as string;
+    const hashedPassword = await hash(createUserDto.password, 10);
     return {
       username: createUserDto.username,
       password: hashedPassword,
