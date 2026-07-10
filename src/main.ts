@@ -19,7 +19,11 @@ async function bootstrap() {
     ? process.env.CORS_ORIGIN.split(',')
         .map((origin) => origin.trim())
         .filter((origin) => origin)
-    : ['http://localhost:8080', 'http://localhost:3000'];
+    : [
+        'http://localhost:8080',
+        'http://localhost:3000',
+        'https://platform-hotel.onrender.com',
+      ];
 
   app.enableCors({
     origin: allowedOrigins,
